@@ -1,3 +1,32 @@
 <resources>
     <string name="app_name">SiLoker</string>
+    <string name="login">Login</string>
+    <string name="let_s_go_get_a_job">Let\'s go get a job!</string>
+    <string name="don_t_have_an_account_yet">Don\'t have an account yet?</string>
+    <string name="register">Register</string>
+    <string name="password">Password</string>
+    <string name="phone_number">Phone Number</string>
+    <string name="press_back_again_to_exit">Press back again to exit</string><string name="error_server">Server error occurred. Please try again later.</string>
+    <string name="error_bad_request">Invalid request. Please check your input.</string>
+    <string name="error_no_internet">No internet connection. Please check your network.</string>
+    <string name="error_unauthorized">You are not authorized. Please login again.</string>
+    <string name="error_payment_required">Payment required to access this resource.</string>
+    <string name="error_forbidden">Access is forbidden. You do not have permission.</string>
+    <string name="error_not_found">Requested resource was not found.</string>
+    <string name="error_method_not_answered">Request method not supported by server.</string>
+    <string name="error_not_acceptable">Request not acceptable. Try a different approach.</string>
+    <string name="error_proxy_authentication_required">Proxy authentication is required.</string>
+    <string name="error_request_timeout">Request timed out. Please try again.</string>
+    <string name="error_conflict">Conflict occurred. Please try again later.</string>
+    <string name="error_gone">Resource is no longer available.</string>
+    <string name="error_length_required">Content length is required but missing.</string>
+    <string name="error_precondition_failed">Precondition failed. Please retry.</string>
+    <string name="error_payload_too_large">The uploaded data is too large.</string>
+    <string name="error_uri_too_long">The requested URL is too long to process.</string>
+    <string name="error_unsupported_media_type">Unsupported media type in the request.</string>
+    <string name="error_range_not_satisfiable">Requested range is not satisfiable.</string>
+    <string name="error_expectation_failed">Server could not meet the expected conditions.</string>
+    <string name="error_misdirected_request">Request was misdirected to the wrong server.</string>
+    <string name="error_too_many_requests">Too many requests. Please slow down.</string>
+    <string name="error_unknown">An unknown error occurred. Please try again.</string>
 </resources>
