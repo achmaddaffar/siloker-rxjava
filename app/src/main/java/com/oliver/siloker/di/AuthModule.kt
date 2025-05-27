@@ -1,7 +1,7 @@
 package com.oliver.siloker.di
 
 import com.oliver.siloker.data.network.service.AuthService
-import com.oliver.siloker.data.pref.SilokerPreference
+import com.oliver.siloker.data.pref.SiLokerPreference
 import com.oliver.siloker.data.repository.AuthRepositoryImpl
 import com.oliver.siloker.domain.repository.AuthRepository
 import dagger.Module
@@ -23,6 +23,6 @@ object AuthModule {
     @Provides
     fun providesAuthRepository(
         authService: AuthService,
-        preference: SilokerPreference
+        preference: SiLokerPreference
     ): AuthRepository = AuthRepositoryImpl(authService, preference)
 }

@@ -29,4 +29,7 @@
     <string name="error_misdirected_request">Request was misdirected to the wrong server.</string>
     <string name="error_too_many_requests">Too many requests. Please slow down.</string>
     <string name="error_unknown">An unknown error occurred. Please try again.</string>
+    <string name="home">Home</string>
+    <string name="history">History</string>
+    <string name="profile">Profile</string>
 </resources>

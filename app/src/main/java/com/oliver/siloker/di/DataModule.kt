@@ -1,8 +1,7 @@
 package com.oliver.siloker.di
 
 import android.content.Context
-import com.oliver.siloker.data.network.service.AuthService
-import com.oliver.siloker.data.pref.SilokerPreference
+import com.oliver.siloker.data.pref.SiLokerPreference
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -21,10 +20,10 @@ object DataModule {
 
     @Singleton
     @Provides
-    fun providesSilokerSharedPreferences(
+    fun providesSiLokerSharedPreferences(
         @ApplicationContext context: Context
-    ): SilokerPreference =
-        SilokerPreference(context.getSharedPreferences("siloker_pref", Context.MODE_PRIVATE))
+    ): SiLokerPreference =
+        SiLokerPreference(context.getSharedPreferences("siloker_pref", Context.MODE_PRIVATE))
 
     @Singleton
     @Provides

@@ -3,7 +3,7 @@ package com.oliver.siloker.data.repository
 import com.oliver.siloker.data.mapper.toDto
 import com.oliver.siloker.data.network.model.response.BaseResponse
 import com.oliver.siloker.data.network.service.AuthService
-import com.oliver.siloker.data.pref.SilokerPreference
+import com.oliver.siloker.data.pref.SiLokerPreference
 import com.oliver.siloker.data.util.getResponse
 import com.oliver.siloker.domain.error.NetworkError
 import com.oliver.siloker.domain.model.request.LoginRequest
@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.flow
 
 class AuthRepositoryImpl(
     private val authService: AuthService,
-    private val preference: SilokerPreference
+    private val preference: SiLokerPreference
 ) : AuthRepository {
     override fun login(request: LoginRequest): Flow<Result<BaseResponse<String>, NetworkError>> =
         flow {

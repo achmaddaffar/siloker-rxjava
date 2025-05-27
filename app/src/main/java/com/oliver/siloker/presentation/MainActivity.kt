@@ -10,7 +10,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
-import com.oliver.siloker.presentation.navigation.SilokerNavigation
+import com.oliver.siloker.presentation.navigation.SiLokerNavigation
 import com.oliver.siloker.presentation.ui.theme.SiLokerTheme
 import com.oliver.siloker.util.findActivity
 import dagger.hilt.android.AndroidEntryPoint
@@ -26,7 +26,7 @@ class MainActivity : ComponentActivity() {
                     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                         val navController = rememberNavController()
 
-                        SilokerNavigation(
+                        SiLokerNavigation(
                             activity = findActivity(),
                             navController = navController,
                             modifier = Modifier.padding(innerPadding)

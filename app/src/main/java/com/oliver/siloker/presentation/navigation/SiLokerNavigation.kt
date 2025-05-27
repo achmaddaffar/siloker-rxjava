@@ -11,11 +11,12 @@ import androidx.navigation.compose.composable
 import com.oliver.siloker.presentation.auth.login.LoginScreen
 import com.oliver.siloker.presentation.auth.register.RegisterScreen
 import com.oliver.siloker.presentation.auth.splash.SplashScreen
+import com.oliver.siloker.presentation.dashboard.DashboardScreen
 import com.oliver.siloker.presentation.navigation.route.AuthRoutes
-import com.oliver.siloker.presentation.navigation.route.HomeRoutes
+import com.oliver.siloker.presentation.navigation.route.DashboardRoutes
 
 @Composable
-fun SilokerNavigation(
+fun SiLokerNavigation(
     activity: Activity?,
     navController: NavHostController,
     modifier: Modifier = Modifier
@@ -37,7 +38,7 @@ fun SilokerNavigation(
                     }
                 },
                 onHomeNavigate = {
-                    navController.navigate(HomeRoutes.HomeScreen) {
+                    navController.navigate(DashboardRoutes.DashboardScreen) {
                         popUpTo<AuthRoutes.SplashScreen> {
                             inclusive = true
                         }
@@ -50,7 +51,7 @@ fun SilokerNavigation(
             LoginScreen(
                 modifier = modifier,
                 onHomeNavigate = {
-                    navController.navigate(HomeRoutes.HomeScreen) {
+                    navController.navigate(DashboardRoutes.DashboardScreen) {
                         popUpTo<AuthRoutes.LoginScreen> {
                             inclusive = true
                         }
@@ -74,8 +75,10 @@ fun SilokerNavigation(
             )
         }
 
-        composable<HomeRoutes.HomeScreen> {
-            Text("HOME")
+        composable<DashboardRoutes.DashboardScreen> {
+            DashboardScreen(
+                modifier = modifier
+            )
         }
     }
 }

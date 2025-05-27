@@ -3,7 +3,7 @@ package com.oliver.siloker.data.pref
 import android.content.SharedPreferences
 import androidx.core.content.edit
 
-class SilokerPreference(
+class SiLokerPreference(
     private val preferences: SharedPreferences
 ) {
 
