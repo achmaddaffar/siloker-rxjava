@@ -1,6 +1,8 @@
 package com.oliver.siloker.di
 
 import android.content.Context
+import com.oliver.siloker.BuildConfig
+import com.oliver.siloker.data.network.interceptor.AuthorizationInterceptor
 import com.oliver.siloker.data.pref.SiLokerPreference
 import dagger.Module
 import dagger.Provides
@@ -25,9 +27,17 @@ object DataModule {
     ): SiLokerPreference =
         SiLokerPreference(context.getSharedPreferences("siloker_pref", Context.MODE_PRIVATE))
 
+    @Provides
+    fun providesAuthorizationInterceptor(
+        preference: SiLokerPreference
+    ): AuthorizationInterceptor = AuthorizationInterceptor(preference)
+
     @Singleton
     @Provides
-    fun providesOkHttpClient(): OkHttpClient = OkHttpClient.Builder()
+    fun providesOkHttpClient(
+        authorizationInterceptor: AuthorizationInterceptor
+    ): OkHttpClient = OkHttpClient.Builder()
+        .addInterceptor(authorizationInterceptor)
         .addInterceptor(HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
         })
@@ -44,6 +54,6 @@ object DataModule {
     ): Retrofit = Retrofit.Builder()
         .client(okHttpClient)
         .addConverterFactory(GsonConverterFactory.create())
-        .baseUrl("http://103.27.206.235:8080/api/v1/")
+        .baseUrl(BuildConfig.BASE_URL + "api/v1/")
         .build()
 }

@@ -32,4 +32,6 @@
     <string name="home">Home</string>
     <string name="history">History</string>
     <string name="profile">Profile</string>
+    <string name="job">Job</string>
+    <string name="search_icon">Search Icon</string>
 </resources>

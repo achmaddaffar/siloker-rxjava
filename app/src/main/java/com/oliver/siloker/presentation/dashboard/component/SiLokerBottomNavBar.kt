@@ -6,7 +6,6 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
@@ -47,9 +46,7 @@ fun SiLokerBottomNavBar(
                 icon = {
                     Icon(
                         imageVector = item.imageVector,
-                        contentDescription = item.label,
-                        tint = if (selectedContentIndex == index) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.secondary
+                        contentDescription = item.label
                     )
                 },
                 label = {

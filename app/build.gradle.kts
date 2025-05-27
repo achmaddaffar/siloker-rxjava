@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -23,8 +25,20 @@ android {
     }
 
     buildTypes {
+        val localProperties = Properties().apply {
+            val localPropertiesFile = rootProject.file("local.properties")
+            if (localPropertiesFile.exists())
+                load(localPropertiesFile.inputStream())
+        }
+        val baseUrl = localProperties["BASE_URL"] as String ?: ""
+
+        debug {
+            buildConfigField("String", "BASE_URL", "\"$baseUrl\"")
+        }
+
         release {
             isMinifyEnabled = false
+            buildConfigField("String", "BASE_URL", "\"$baseUrl\"")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -39,6 +53,7 @@ android {
         jvmTarget = "11"
     }
     buildFeatures {
+        buildConfig = true
         compose = true
     }
 }
@@ -81,8 +96,9 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
 
     // Paging
-    implementation(libs.androidx.paging.runtime.ktx)
-    implementation(libs.androidx.paging.compose)
+    implementation(libs.paging.runtime)
+    implementation(libs.paging.runtime.ktx)
+    implementation(libs.paging.compose)
 
     // Serialization
     implementation(libs.kotlinx.serialization.json)
