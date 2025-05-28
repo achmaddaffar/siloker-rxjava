@@ -1,5 +1,6 @@
 package com.oliver.siloker.di
 
+import android.app.Application
 import com.oliver.siloker.data.network.service.JobService
 import com.oliver.siloker.data.pref.SiLokerPreference
 import com.oliver.siloker.data.repository.JobRepositoryImpl
@@ -22,6 +23,7 @@ object JobModule {
     @Provides
     fun providesJobRepository(
         jobService: JobService,
-        preference: SiLokerPreference
-    ): JobRepository = JobRepositoryImpl(jobService, preference)
+        preference: SiLokerPreference,
+        application: Application
+    ): JobRepository = JobRepositoryImpl(jobService, preference, application)
 }

@@ -24,16 +24,10 @@ class GetJobPagingSource(
 
             val response = onGetResponse(pageNumber, PAGE_SIZE)
             if (response.isSuccessful) {
-                val prevKey = if (pageNumber > 1) pageNumber.minus(PAGE_SIZE) else null
-                val nextKey =
-                    if (response.body()?.data?.content?.isEmpty() == true) null else pageNumber.plus(
-                        PAGE_SIZE
-                    )
-
                 return LoadResult.Page(
                     data = response.body()?.data?.toDomain() ?: emptyList(),
-                    prevKey = prevKey,
-                    nextKey = nextKey
+                    prevKey = response.body()?.data?.prevPage,
+                    nextKey = response.body()?.data?.nextPage
                 )
             }
 

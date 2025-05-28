@@ -2,8 +2,8 @@ package com.oliver.siloker.presentation.navigation.route
 
 import kotlinx.serialization.Serializable
 
-sealed interface DashboardRoutes {
+sealed interface JobRoutes {
 
     @Serializable
-    data object DashboardScreen
+    data object PostJobScreen
 }

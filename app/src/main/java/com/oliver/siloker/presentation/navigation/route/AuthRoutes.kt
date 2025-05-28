@@ -2,7 +2,7 @@ package com.oliver.siloker.presentation.navigation.route
 
 import kotlinx.serialization.Serializable
 
-sealed class AuthRoutes {
+sealed interface AuthRoutes {
 
     @Serializable
     data object SplashScreen

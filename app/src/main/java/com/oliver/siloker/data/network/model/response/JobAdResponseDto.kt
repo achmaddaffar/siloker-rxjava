@@ -5,7 +5,7 @@ import com.google.gson.annotations.SerializedName
 data class JobAdResponseDto(
 
 	@field:SerializedName("next_page")
-	val nextPage: Any? = null,
+	val nextPage: Int? = null,
 
 	@field:SerializedName("total_item")
 	val totalItem: Int? = null,
@@ -14,7 +14,7 @@ data class JobAdResponseDto(
 	val totalPage: Int? = null,
 
 	@field:SerializedName("prev_page")
-	val prevPage: Any? = null,
+	val prevPage: Int? = null,
 
 	@field:SerializedName("current_page")
 	val currentPage: Int? = null,

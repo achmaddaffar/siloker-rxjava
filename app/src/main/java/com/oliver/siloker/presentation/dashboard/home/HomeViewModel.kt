@@ -1,6 +1,5 @@
 package com.oliver.siloker.presentation.dashboard.home
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
@@ -28,12 +27,13 @@ class HomeViewModel @Inject constructor(
     private val _state = MutableStateFlow(HomeState())
     val state = _state.asStateFlow()
 
+    // TODO("Create Error Events")
+
     val jobs = state
         .map { it.query }
         .distinctUntilChanged()
         .flatMapLatest { query ->
-            Log.e("okht", "KETRIGGER NJIR VM VM VM")
-            delay(300)
+            delay(500)
             jobRepository.getJobs(query).cachedIn(viewModelScope)
         }
         .stateIn(

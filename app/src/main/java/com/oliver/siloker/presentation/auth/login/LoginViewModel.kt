@@ -7,14 +7,14 @@ import com.oliver.siloker.domain.repository.AuthRepository
 import com.oliver.siloker.domain.util.onError
 import com.oliver.siloker.domain.util.onSuccess
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
@@ -26,8 +26,8 @@ class LoginViewModel @Inject constructor(
     private val _state = MutableStateFlow(LoginState())
     val state = _state.asStateFlow()
 
-    private val _event = Channel<LoginEvent>()
-    val event = _event.receiveAsFlow()
+    private val _event = MutableSharedFlow<LoginEvent>()
+    val event = _event.asSharedFlow()
 
     fun setPhoneNumber(
         value: String
@@ -56,8 +56,8 @@ class LoginViewModel @Inject constructor(
             .onStart { _state.update { it.copy(isLoading = true) } }
             .onEach { result ->
                 result
-                    .onSuccess { _event.send(LoginEvent.Success) }
-                    .onError { _event.send(LoginEvent.Error(it)) }
+                    .onSuccess { _event.emit(LoginEvent.Success) }
+                    .onError { _event.emit(LoginEvent.Error(it)) }
             }
             .onCompletion { _state.update { it.copy(isLoading = false) } }
             .launchIn(viewModelScope)

@@ -34,4 +34,13 @@
     <string name="profile">Profile</string>
     <string name="job">Job</string>
     <string name="search_icon">Search Icon</string>
+    <string name="post_job_ad">Post job ad</string>
+    <string name="add_picture">Add picture</string>
+    <string name="selected_image">Selected Image</string>
+    <string name="title">Title</string>
+    <string name="enter_job_title">Enter job title</string>
+    <string name="description">Description</string>
+    <string name="enter_job_description">Enter job description</string>
+    <string name="post">Post</string>
+    <string name="let_s_post_your_job_advertisement">Let\'s Post Your Job Advertisement</string>
 </resources>

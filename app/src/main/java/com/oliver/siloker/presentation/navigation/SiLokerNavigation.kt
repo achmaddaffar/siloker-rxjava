@@ -1,7 +1,6 @@
 package com.oliver.siloker.presentation.navigation
 
 import android.app.Activity
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.dropUnlessResumed
@@ -12,8 +11,10 @@ import com.oliver.siloker.presentation.auth.login.LoginScreen
 import com.oliver.siloker.presentation.auth.register.RegisterScreen
 import com.oliver.siloker.presentation.auth.splash.SplashScreen
 import com.oliver.siloker.presentation.dashboard.DashboardScreen
+import com.oliver.siloker.presentation.job.post.PostJobScreen
 import com.oliver.siloker.presentation.navigation.route.AuthRoutes
 import com.oliver.siloker.presentation.navigation.route.DashboardRoutes
+import com.oliver.siloker.presentation.navigation.route.JobRoutes
 
 @Composable
 fun SiLokerNavigation(
@@ -77,6 +78,18 @@ fun SiLokerNavigation(
 
         composable<DashboardRoutes.DashboardScreen> {
             DashboardScreen(
+                onPostJobNavigate = dropUnlessResumed {
+                    navController.navigate(JobRoutes.PostJobScreen)
+                },
+                modifier = modifier
+            )
+        }
+
+        composable<JobRoutes.PostJobScreen> {
+            PostJobScreen(
+                onBackNavigate = dropUnlessResumed {
+                    navController.navigateUp()
+                },
                 modifier = modifier
             )
         }
