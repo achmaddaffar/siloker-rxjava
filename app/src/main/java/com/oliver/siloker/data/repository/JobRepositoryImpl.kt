@@ -52,11 +52,10 @@ class JobRepositoryImpl(
         description: String
     ): Flow<Result<BaseResponse<Boolean>, NetworkError>> = flow {
         val file = FileUtil.uriToFile(uri, application)
-        val reducedFile = FileUtil.reduceFileImage(file)
-        val requestImageFile = reducedFile.asRequestBody("image/jpeg".toMediaTypeOrNull())
+        val requestImageFile = file.asRequestBody("image/*".toMediaTypeOrNull())
         val imageMultipart = MultipartBody.Part.createFormData(
             "image",
-            reducedFile.name,
+            file.name,
             requestImageFile
         )
 

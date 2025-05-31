@@ -22,6 +22,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.compose.dropUnlessResumed
 import com.oliver.siloker.R
 import com.oliver.siloker.presentation.dashboard.component.SiLokerBottomNavBar
 import com.oliver.siloker.presentation.dashboard.history.HistoryContent
@@ -31,6 +32,7 @@ import com.oliver.siloker.presentation.dashboard.profile.ProfileContent
 @Composable
 fun DashboardScreen(
     onPostJobNavigate: () -> Unit,
+    onLogoutNavigate: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var selectedContentIndex by rememberSaveable { mutableIntStateOf(0) }
@@ -88,6 +90,7 @@ fun DashboardScreen(
                 )
 
                 2 -> ProfileContent(
+                    onLogoutNavigate = onLogoutNavigate,
                     modifier = Modifier.fillMaxSize()
                 )
             }

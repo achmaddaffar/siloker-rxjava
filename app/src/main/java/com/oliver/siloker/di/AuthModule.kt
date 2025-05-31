@@ -1,5 +1,6 @@
 package com.oliver.siloker.di
 
+import android.app.Application
 import com.oliver.siloker.data.network.service.AuthService
 import com.oliver.siloker.data.pref.SiLokerPreference
 import com.oliver.siloker.data.repository.AuthRepositoryImpl
@@ -23,6 +24,7 @@ object AuthModule {
     @Provides
     fun providesAuthRepository(
         authService: AuthService,
-        preference: SiLokerPreference
-    ): AuthRepository = AuthRepositoryImpl(authService, preference)
+        preference: SiLokerPreference,
+        application: Application
+    ): AuthRepository = AuthRepositoryImpl(authService, preference, application)
 }

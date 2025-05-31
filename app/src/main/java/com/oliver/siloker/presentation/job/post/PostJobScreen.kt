@@ -30,7 +30,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -52,13 +51,13 @@ import com.oliver.siloker.presentation.util.ErrorMessageUtil.parseNetworkError
 
 @Composable
 fun PostJobScreen(
+    snackbarHostState: SnackbarHostState,
     onBackNavigate: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val viewModel = hiltViewModel<PostJobViewModel>()
     val focusManager = LocalFocusManager.current
     val context = LocalContext.current
-    val snackbarHostState = remember { SnackbarHostState() }
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) {

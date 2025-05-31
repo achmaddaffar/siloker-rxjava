@@ -43,4 +43,11 @@
     <string name="enter_job_description">Enter job description</string>
     <string name="post">Post</string>
     <string name="let_s_post_your_job_advertisement">Let\'s Post Your Job Advertisement</string>
+    <string name="sign_in_and_explore_siloker">Sign In and Explore SiLoker</string>
+    <string name="full_name">Full Name</string>
+    <string name="repeat_password">Repeat Password</string>
+    <string name="bio">Bio</string>
+    <string name="passwords_are_not_the_same">Passwords are not the same</string>
+    <string name="password_is_too_short">Password is too short</string>
+    <string name="logout">Logout</string>
 </resources>
