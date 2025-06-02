@@ -50,4 +50,20 @@
     <string name="passwords_are_not_the_same">Passwords are not the same</string>
     <string name="password_is_too_short">Password is too short</string>
     <string name="logout">Logout</string>
+    <string name="success">Success</string>
+    <string name="you_have_successfully_registered_a_user">You have successfully registered a user</string>
+    <string name="go_to_login">Go to Login</string>
+    <string name="profile_picture">Profile Picture</string>
+    <string name="job_seeker_information">Job Seeker Information</string>
+    <string name="resume">Resume</string>
+    <string name="link">Link</string>
+    <string name="skills">Skills</string>
+    <string name="experiences">Experiences</string>
+    <string name="company_website">Company Website</string>
+    <string name="employer_information">Employer Information</string>
+    <string name="company_name">Company Name</string>
+    <string name="position">Position</string>
+    <string name="job_seeker_has_not_been_set">Job Seeker has not been set</string>
+    <string name="edit_employer">Edit Employer</string>
+    <string name="edit_job_seeker">Edit Job Seeker</string>
 </resources>

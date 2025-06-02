@@ -15,6 +15,7 @@ import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -22,7 +23,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.lifecycle.compose.dropUnlessResumed
 import com.oliver.siloker.R
 import com.oliver.siloker.presentation.dashboard.component.SiLokerBottomNavBar
 import com.oliver.siloker.presentation.dashboard.history.HistoryContent
@@ -31,6 +31,7 @@ import com.oliver.siloker.presentation.dashboard.profile.ProfileContent
 
 @Composable
 fun DashboardScreen(
+    snackbarHostState: SnackbarHostState,
     onPostJobNavigate: () -> Unit,
     onLogoutNavigate: () -> Unit,
     modifier: Modifier = Modifier
@@ -48,14 +49,15 @@ fun DashboardScreen(
             }
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = onPostJobNavigate
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = stringResource(R.string.post_job_ad)
-                )
-            }
+            if (selectedContentIndex == 0)
+                FloatingActionButton(
+                    onClick = onPostJobNavigate
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = stringResource(R.string.post_job_ad)
+                    )
+                }
         },
         floatingActionButtonPosition = FabPosition.End
     ) { innerPadding ->
@@ -90,6 +92,7 @@ fun DashboardScreen(
                 )
 
                 2 -> ProfileContent(
+                    snackbarHostState = snackbarHostState,
                     onLogoutNavigate = onLogoutNavigate,
                     modifier = Modifier.fillMaxSize()
                 )

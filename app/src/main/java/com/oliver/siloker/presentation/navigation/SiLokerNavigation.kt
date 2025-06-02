@@ -94,6 +94,7 @@ fun SiLokerNavigation(
 
             composable<DashboardRoutes.DashboardScreen> {
                 DashboardScreen(
+                    snackbarHostState = snackbarHostState,
                     onPostJobNavigate = dropUnlessResumed {
                         navController.navigate(JobRoutes.PostJobScreen)
                     },

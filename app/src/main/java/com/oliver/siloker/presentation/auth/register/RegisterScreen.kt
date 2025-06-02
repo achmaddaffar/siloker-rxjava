@@ -112,11 +112,11 @@ fun RegisterScreen(
     if (state.isLoading) LoadingDialog()
     if (isSuccessPopUpVisible)
         ResultDialog(
-            title = "Success",
+            title = stringResource(R.string.success),
             image = R.drawable.illustration_success,
-            description = "You have successfully registered a user",
+            description = stringResource(R.string.you_have_successfully_registered_a_user),
             onDismissRequest = {},
-            primaryButtonText = "Go to Login",
+            primaryButtonText = stringResource(R.string.go_to_login),
             onPrimaryButtonClick = onLoginNavigate
         )
 
