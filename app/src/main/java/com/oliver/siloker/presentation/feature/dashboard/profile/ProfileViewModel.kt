@@ -1,5 +1,6 @@
 package com.oliver.siloker.presentation.feature.dashboard.profile
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.oliver.siloker.domain.repository.AuthRepository
@@ -58,6 +59,26 @@ class ProfileViewModel @Inject constructor(
                             )
                         }
                     }
+                    .onError { _event.emit(ProfileEvent.Error(it)) }
+            }
+            .onCompletion {
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        isRefreshing = false
+                    )
+                }
+            }
+            .launchIn(viewModelScope)
+    }
+
+    fun uploadProfilePicture(uri: Uri) {
+        userRepository
+            .uploadProfilePicture(uri)
+            .onStart { _state.update { it.copy(isLoading = true) } }
+            .onEach { result ->
+                result
+                    .onSuccess { getProfile() }
                     .onError { _event.emit(ProfileEvent.Error(it)) }
             }
             .onCompletion {

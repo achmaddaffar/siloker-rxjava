@@ -1,6 +1,7 @@
 package com.oliver.siloker.data.repository
 
 import android.app.Application
+import android.net.Uri
 import com.oliver.siloker.data.mapper.toEmployerDto
 import com.oliver.siloker.data.mapper.toGetProfileDomain
 import com.oliver.siloker.data.mapper.toJobSeekerDto
@@ -14,8 +15,12 @@ import com.oliver.siloker.domain.model.response.GetProfileResponse
 import com.oliver.siloker.domain.repository.UserRepository
 import com.oliver.siloker.domain.util.Result
 import com.oliver.siloker.domain.util.map
+import com.oliver.siloker.util.FileUtil
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
 
 class UserRepositoryImpl(
     private val userService: UserService,
@@ -26,6 +31,18 @@ class UserRepositoryImpl(
         flow {
             val response = getResponse { userService.getProfile() }
             emit(response.map { it.data.toGetProfileDomain() })
+        }
+
+    override fun uploadProfilePicture(uri: Uri): Flow<Result<BaseResponse<Boolean>, NetworkError>> =
+        flow {
+            val file = FileUtil.uriToFile(uri, application)
+            val part = MultipartBody.Part.createFormData(
+                "profile_picture",
+                file.name,
+                file.asRequestBody("image/*".toMediaTypeOrNull())
+            )
+            val response = getResponse { userService.updateProfilePicture(part) }
+            emit(response)
         }
 
     override fun updateJobSeeker(request: UpdateJobSeekerRequest): Flow<Result<BaseResponse<Boolean>, NetworkError>> =

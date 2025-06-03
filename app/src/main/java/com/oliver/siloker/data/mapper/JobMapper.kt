@@ -8,7 +8,7 @@ fun JobAdResponseDto.toJobAdDomain() = this.content?.map {
     JobAdResponseItem(
         id = it?.id ?: -1,
         title = it?.title.toString(),
-        description = it?.title.toString(),
+        description = it?.description.toString(),
         imageUrl = "${BuildConfig.BASE_URL}${it?.imageUrl?.drop(1)}",
         postedAt = it?.createdAt.toString()
     )

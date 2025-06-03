@@ -1,6 +1,7 @@
 package com.oliver.siloker.presentation.feature.dashboard
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.fadeIn
@@ -51,7 +52,11 @@ fun DashboardScreen(
             }
         },
         floatingActionButton = {
-            if (selectedContentIndex == 0)
+            AnimatedVisibility(
+                visible = selectedContentIndex == 0,
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
                 FloatingActionButton(
                     onClick = onPostJobNavigate
                 ) {
@@ -60,6 +65,7 @@ fun DashboardScreen(
                         contentDescription = stringResource(R.string.post_job_ad)
                     )
                 }
+            }
         },
         floatingActionButtonPosition = FabPosition.End
     ) { innerPadding ->

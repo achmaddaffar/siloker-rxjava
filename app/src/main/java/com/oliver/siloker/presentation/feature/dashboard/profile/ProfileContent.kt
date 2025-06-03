@@ -1,6 +1,8 @@
 package com.oliver.siloker.presentation.feature.dashboard.profile
 
 import android.content.Intent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -51,6 +53,13 @@ fun ProfileContent(
 ) {
     val viewModel = hiltViewModel<ProfileViewModel>()
     val context = LocalContext.current
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) {
+        it?.let {
+            viewModel.uploadProfilePicture(it)
+        }
+    }
 
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -89,6 +98,9 @@ fun ProfileContent(
                 profilePictureUrl = state.profilePictureUrl,
                 fullName = state.fullName,
                 bio = state.bio,
+                onProfileClick = {
+                    galleryLauncher.launch("image/*")
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(IntrinsicSize.Max)

@@ -1,6 +1,7 @@
 package com.oliver.siloker.presentation.feature.dashboard.component
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,6 +33,7 @@ fun ProfileTopSection(
     profilePictureUrl: String?,
     fullName: String,
     bio: String,
+    onProfileClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -71,6 +73,7 @@ fun ProfileTopSection(
             modifier = Modifier
                 .size(125.dp)
                 .clip(CircleShape)
+                .clickable { onProfileClick() }
         )
         Column(
             modifier = Modifier.fillMaxSize()
