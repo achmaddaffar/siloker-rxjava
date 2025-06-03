@@ -1,5 +1,7 @@
 package com.oliver.siloker.data.util
 
+import android.util.Log
+import com.oliver.siloker.BuildConfig
 import com.oliver.siloker.domain.error.NetworkError
 import com.oliver.siloker.domain.util.Result
 import retrofit2.Response
@@ -36,6 +38,7 @@ suspend inline fun <reified T> getResponse(
 
         return Result.Success(res.body() ?: throw NullPointerException())
     } catch (e: Exception) {
+        if (BuildConfig.DEBUG) Log.e("okht", e.message.toString())
         return Result.Error(NetworkError.UNKNOWN)
     }
 }

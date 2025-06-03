@@ -1,8 +1,8 @@
 package com.oliver.siloker.data.repository
 
 import android.app.Application
-import com.oliver.siloker.data.mapper.toDto
-import com.oliver.siloker.data.mapper.toMultipartParts
+import com.oliver.siloker.data.mapper.toLoginDto
+import com.oliver.siloker.data.mapper.toRegisterMultipartParts
 import com.oliver.siloker.data.network.model.response.BaseResponse
 import com.oliver.siloker.data.network.service.AuthService
 import com.oliver.siloker.data.pref.SiLokerPreference
@@ -23,7 +23,7 @@ class AuthRepositoryImpl(
 ) : AuthRepository {
     override fun login(request: LoginRequest): Flow<Result<BaseResponse<String>, NetworkError>> =
         flow {
-            val result = getResponse { authService.login(request.toDto()) }
+            val result = getResponse { authService.login(request.toLoginDto()) }
             result.onSuccess { preference.putToken(it.data) }
             emit(result)
         }
@@ -31,7 +31,7 @@ class AuthRepositoryImpl(
     override fun register(request: RegisterRequest): Flow<Result<BaseResponse<Boolean>, NetworkError>> =
         flow {
             val result = getResponse {
-                authService.register(request.toMultipartParts(application))
+                authService.register(request.toRegisterMultipartParts(application))
             }
             emit(result)
         }

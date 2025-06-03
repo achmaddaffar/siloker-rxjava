@@ -12,11 +12,12 @@ import androidx.lifecycle.compose.dropUnlessResumed
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.oliver.siloker.presentation.auth.login.LoginScreen
-import com.oliver.siloker.presentation.auth.register.RegisterScreen
-import com.oliver.siloker.presentation.auth.splash.SplashScreen
-import com.oliver.siloker.presentation.dashboard.DashboardScreen
-import com.oliver.siloker.presentation.job.post.PostJobScreen
+import com.oliver.siloker.presentation.feature.auth.login.LoginScreen
+import com.oliver.siloker.presentation.feature.auth.register.RegisterScreen
+import com.oliver.siloker.presentation.feature.auth.splash.SplashScreen
+import com.oliver.siloker.presentation.feature.dashboard.DashboardScreen
+import com.oliver.siloker.presentation.feature.dashboard.profile.edit_job_seeker.EditJobSeekerScreen
+import com.oliver.siloker.presentation.feature.job.post.PostJobScreen
 import com.oliver.siloker.presentation.navigation.route.AuthRoutes
 import com.oliver.siloker.presentation.navigation.route.DashboardRoutes
 import com.oliver.siloker.presentation.navigation.route.JobRoutes
@@ -98,12 +99,28 @@ fun SiLokerNavigation(
                     onPostJobNavigate = dropUnlessResumed {
                         navController.navigate(JobRoutes.PostJobScreen)
                     },
+                    onEditJobSeekerNavigate = dropUnlessResumed { 
+                        navController.navigate(DashboardRoutes.EditJobSeekerScreen)
+                    },
+                    onEditEmployerNavigate = dropUnlessResumed { 
+                        
+                    },
                     onLogoutNavigate = dropUnlessResumed {
                         navController.navigate(AuthRoutes.LoginScreen) {
                             popUpTo<AuthRoutes.LoginScreen> {
                                 inclusive = true
                             }
                         }
+                    },
+                    modifier = modifier
+                )
+            }
+            
+            composable<DashboardRoutes.EditJobSeekerScreen> {
+                EditJobSeekerScreen(
+                    snackbarHostState = snackbarHostState,
+                    onBackNavigate = dropUnlessResumed {
+                        navController.navigateUp()
                     },
                     modifier = modifier
                 )

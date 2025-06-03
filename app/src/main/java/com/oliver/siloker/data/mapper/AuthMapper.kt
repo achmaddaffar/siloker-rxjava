@@ -9,12 +9,12 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 
-fun LoginRequest.toDto() = LoginRequestDto(
+fun LoginRequest.toLoginDto() = LoginRequestDto(
     password = this.password,
     phoneNumber = this.phoneNumber
 )
 
-fun RegisterRequest.toMultipartParts(application: Application): List<MultipartBody.Part> {
+fun RegisterRequest.toRegisterMultipartParts(application: Application): List<MultipartBody.Part> {
     val file = FileUtil.uriToFile(this.profilePictureFile, application)
     return listOf(
         MultipartBody.Part.createFormData("full_name", this.fullName),

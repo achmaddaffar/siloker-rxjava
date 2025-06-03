@@ -66,4 +66,12 @@
     <string name="job_seeker_has_not_been_set">Job Seeker has not been set</string>
     <string name="edit_employer">Edit Employer</string>
     <string name="edit_job_seeker">Edit Job Seeker</string>
+    <string name="resume_url">Resume URL</string>
+    <string name="delete">Delete</string>
+    <string name="add_skill">Add Skill</string>
+    <string name="add_experience">Add Experience</string>
+    <string name="edit">Edit</string>
+    <string name="back">Back</string>
+    <string name="close">Close</string>
+    <string name="job_seeker_data_has_been_updated_successfully">Job Seeker data has been updated successfully</string>
 </resources>

@@ -2,7 +2,7 @@ package com.oliver.siloker.data.network.paging
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import com.oliver.siloker.data.mapper.toDomain
+import com.oliver.siloker.data.mapper.toJobAdDomain
 import com.oliver.siloker.data.network.model.response.BaseResponse
 import com.oliver.siloker.data.network.model.response.JobAdResponseDto
 import com.oliver.siloker.data.util.getErrorResponse
@@ -25,7 +25,7 @@ class GetJobPagingSource(
             val response = onGetResponse(pageNumber, PAGE_SIZE)
             if (response.isSuccessful) {
                 return LoadResult.Page(
-                    data = response.body()?.data?.toDomain() ?: emptyList(),
+                    data = response.body()?.data?.toJobAdDomain() ?: emptyList(),
                     prevKey = response.body()?.data?.prevPage,
                     nextKey = response.body()?.data?.nextPage
                 )
