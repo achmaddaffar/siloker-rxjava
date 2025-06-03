@@ -16,6 +16,7 @@ import com.oliver.siloker.presentation.feature.auth.login.LoginScreen
 import com.oliver.siloker.presentation.feature.auth.register.RegisterScreen
 import com.oliver.siloker.presentation.feature.auth.splash.SplashScreen
 import com.oliver.siloker.presentation.feature.dashboard.DashboardScreen
+import com.oliver.siloker.presentation.feature.dashboard.profile.edit_employer.EditEmployerScreen
 import com.oliver.siloker.presentation.feature.dashboard.profile.edit_job_seeker.EditJobSeekerScreen
 import com.oliver.siloker.presentation.feature.job.post.PostJobScreen
 import com.oliver.siloker.presentation.navigation.route.AuthRoutes
@@ -103,7 +104,7 @@ fun SiLokerNavigation(
                         navController.navigate(DashboardRoutes.EditJobSeekerScreen)
                     },
                     onEditEmployerNavigate = dropUnlessResumed { 
-                        
+                        navController.navigate(DashboardRoutes.EditEmployerScreen)
                     },
                     onLogoutNavigate = dropUnlessResumed {
                         navController.navigate(AuthRoutes.LoginScreen) {
@@ -118,6 +119,16 @@ fun SiLokerNavigation(
             
             composable<DashboardRoutes.EditJobSeekerScreen> {
                 EditJobSeekerScreen(
+                    snackbarHostState = snackbarHostState,
+                    onBackNavigate = dropUnlessResumed {
+                        navController.navigateUp()
+                    },
+                    modifier = modifier
+                )
+            }
+
+            composable<DashboardRoutes.EditEmployerScreen> {
+                EditEmployerScreen(
                     snackbarHostState = snackbarHostState,
                     onBackNavigate = dropUnlessResumed {
                         navController.navigateUp()

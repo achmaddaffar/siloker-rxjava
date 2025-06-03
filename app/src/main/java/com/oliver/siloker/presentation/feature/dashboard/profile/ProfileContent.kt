@@ -147,7 +147,6 @@ fun ProfileContent(
                         )
                         context.startActivity(intent)
                     },
-                    onEditClick = onEditEmployerNavigate,
                     modifier = Modifier.fillMaxWidth()
                 )
             else if (!state.isLoading)
@@ -160,6 +159,12 @@ fun ProfileContent(
                 ) {
                     Text(stringResource(R.string.job_seeker_has_not_been_set))
                 }
+            OutlinedButton(
+                onClick = onEditEmployerNavigate,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(stringResource(R.string.edit_employer))
+            }
 
             HorizontalDivider(modifier = Modifier.fillMaxWidth())
 

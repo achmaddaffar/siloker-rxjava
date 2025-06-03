@@ -24,7 +24,6 @@ fun ProfileEmployerSection(
     companyName: String,
     position: String,
     onCompanyWebsiteClick: () -> Unit,
-    onEditClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -85,13 +84,6 @@ fun ProfileEmployerSection(
                 text = position,
                 style = AppTypography.bodyMedium
             )
-        }
-
-        OutlinedButton(
-            onClick = onEditClick,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(stringResource(R.string.edit_employer))
         }
     }
 }
