@@ -74,4 +74,11 @@
     <string name="back">Back</string>
     <string name="close">Close</string>
     <string name="job_seeker_data_has_been_updated_successfully">Job Seeker data has been updated successfully</string>
+    <string name="job_picture">Job Picture</string>
+    <string name="search_jobs_">Search jobs...</string>
+    <string name="posted_on_s">Posted on %s</string>
+    <string name="apply">Apply</string>
+    <string name="upload_cv">Upload CV</string>
+    <string name="employer">Employer</string>
+    <string name="s_at_s">%s at %s</string>
 </resources>

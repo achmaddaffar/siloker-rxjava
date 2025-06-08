@@ -4,7 +4,7 @@ import android.app.Application
 import com.oliver.siloker.data.network.model.request.LoginRequestDto
 import com.oliver.siloker.domain.model.request.LoginRequest
 import com.oliver.siloker.domain.model.request.RegisterRequest
-import com.oliver.siloker.util.FileUtil
+import com.oliver.siloker.domain.util.FileUtil
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody

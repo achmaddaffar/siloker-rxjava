@@ -15,9 +15,11 @@ import com.oliver.siloker.domain.model.response.GetProfileResponse
 import com.oliver.siloker.domain.repository.UserRepository
 import com.oliver.siloker.domain.util.Result
 import com.oliver.siloker.domain.util.map
-import com.oliver.siloker.util.FileUtil
+import com.oliver.siloker.domain.util.FileUtil
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -43,7 +45,7 @@ class UserRepositoryImpl(
             )
             val response = getResponse { userService.updateProfilePicture(part) }
             emit(response)
-        }
+        }.flowOn(Dispatchers.IO)
 
     override fun updateJobSeeker(request: UpdateJobSeekerRequest): Flow<Result<BaseResponse<Boolean>, NetworkError>> =
         flow {

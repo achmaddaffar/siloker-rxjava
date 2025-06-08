@@ -34,6 +34,7 @@ import com.oliver.siloker.presentation.feature.dashboard.component.JobAdCard
 
 @Composable
 fun HomeContent(
+    onJobAdClick: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val viewModel = hiltViewModel<HomeViewModel>()
@@ -50,7 +51,7 @@ fun HomeContent(
             onValueChange = {
                 viewModel.setQuery(it)
             },
-            placeholder = { Text("Search jobs...") },
+            placeholder = { Text(stringResource(R.string.search_jobs_)) },
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Default.Search,
@@ -85,7 +86,7 @@ fun HomeContent(
                     title = jobAd?.title.toString(),
                     description = jobAd?.description.toString(),
                     onClick = {
-
+                        jobAd?.id?.let { onJobAdClick(it) }
                     },
                     modifier = Modifier.fillMaxSize()
                 )

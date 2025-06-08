@@ -1,4 +1,4 @@
-package com.oliver.siloker.util
+package com.oliver.siloker.presentation.util
 
 import android.app.Activity
 import android.content.Context

@@ -5,5 +5,8 @@ import kotlinx.serialization.Serializable
 sealed interface JobRoutes {
 
     @Serializable
-    data object PostJobScreen
+    data object PostJobScreen : JobRoutes
+
+    @Serializable
+    data class JobDetailScreen(val jobId: Long) : JobRoutes
 }

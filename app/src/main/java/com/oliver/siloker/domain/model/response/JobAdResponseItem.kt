@@ -1,7 +1,7 @@
 package com.oliver.siloker.domain.model.response
 
 data class JobAdResponseItem(
-    val id: Int,
+    val id: Long,
     val title: String,
     val description: String,
     val imageUrl: String,

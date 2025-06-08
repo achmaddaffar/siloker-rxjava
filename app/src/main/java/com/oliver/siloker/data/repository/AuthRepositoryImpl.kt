@@ -13,8 +13,10 @@ import com.oliver.siloker.domain.model.request.RegisterRequest
 import com.oliver.siloker.domain.repository.AuthRepository
 import com.oliver.siloker.domain.util.Result
 import com.oliver.siloker.domain.util.onSuccess
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 
 class AuthRepositoryImpl(
     private val authService: AuthService,
@@ -34,7 +36,7 @@ class AuthRepositoryImpl(
                 authService.register(request.toRegisterMultipartParts(application))
             }
             emit(result)
-        }
+        }.flowOn(Dispatchers.IO)
 
     override fun getToken(): String? = preference.getToken()
 

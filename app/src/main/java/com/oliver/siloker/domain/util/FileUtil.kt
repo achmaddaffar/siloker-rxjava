@@ -1,11 +1,9 @@
-package com.oliver.siloker.util
+package com.oliver.siloker.domain.util
 
 import android.content.ContentResolver
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
-import java.io.ByteArrayOutputStream
+import android.provider.OpenableColumns
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
@@ -39,5 +37,19 @@ object FileUtil {
         inputStream.close()
 
         return file
+    }
+
+    fun getFileNameFromUri(context: Context, uri: Uri): String? {
+        var fileName: String? = null
+        val cursor = context.contentResolver.query(uri, null, null, null, null)
+        cursor?.use {
+            if (it.moveToFirst()) {
+                val index = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                if (index != -1) {
+                    fileName = it.getString(index)
+                }
+            }
+        }
+        return fileName
     }
 }

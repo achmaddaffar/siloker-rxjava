@@ -12,7 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import com.oliver.siloker.presentation.navigation.SiLokerNavigation
 import com.oliver.siloker.presentation.ui.theme.SiLokerTheme
-import com.oliver.siloker.util.findActivity
+import com.oliver.siloker.presentation.util.findActivity
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

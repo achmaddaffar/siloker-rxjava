@@ -12,7 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.oliver.siloker.util.LockScreenOrientation
+import com.oliver.siloker.presentation.util.LockScreenOrientation
 import kotlinx.coroutines.delay
 
 @Composable

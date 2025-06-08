@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
+import com.oliver.siloker.data.mapper.toJobDetailDomain
 import com.oliver.siloker.data.network.model.response.BaseResponse
 import com.oliver.siloker.data.network.paging.GetJobPagingSource
 import com.oliver.siloker.data.network.service.JobService
@@ -12,9 +13,11 @@ import com.oliver.siloker.data.pref.SiLokerPreference
 import com.oliver.siloker.data.util.getResponse
 import com.oliver.siloker.domain.error.NetworkError
 import com.oliver.siloker.domain.model.response.JobAdResponseItem
+import com.oliver.siloker.domain.model.response.JobDetailResponse
 import com.oliver.siloker.domain.repository.JobRepository
 import com.oliver.siloker.domain.util.Result
-import com.oliver.siloker.util.FileUtil
+import com.oliver.siloker.domain.util.map
+import com.oliver.siloker.domain.util.FileUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -31,13 +34,15 @@ class JobRepositoryImpl(
 ) : JobRepository {
 
     override fun getJobs(
-        query: String
+        query: String,
+        employerId: Long?
     ): Flow<PagingData<JobAdResponseItem>> = Pager(
         PagingConfig(GetJobPagingSource.PAGE_SIZE)
     ) {
         GetJobPagingSource { page, size ->
             jobService.getJobs(
                 query = query,
+                employerId = employerId,
                 page = page,
                 size = size
             )
@@ -45,6 +50,14 @@ class JobRepositoryImpl(
     }
         .flow
         .flowOn(Dispatchers.IO)
+
+    override fun getJobDetail(
+        jobId: Long
+    ): Flow<Result<JobDetailResponse, NetworkError>> =
+        flow {
+            val response = getResponse { jobService.getJobDetail(jobId) }
+            emit(response.map { it.data.toJobDetailDomain() })
+        }
 
     override fun postJob(
         uri: Uri,
@@ -69,4 +82,26 @@ class JobRepositoryImpl(
 
         emit(response)
     }.flowOn(Dispatchers.IO)
+
+    override fun applyJob(
+        jobId: Long,
+        cv: Uri
+    ): Flow<Result<BaseResponse<Boolean>, NetworkError>> =
+        flow {
+            val file = FileUtil.uriToFile(cv, application)
+            val requestCvFile = file.asRequestBody("application/pdf".toMediaTypeOrNull())
+            val cvMultipart = MultipartBody.Part.createFormData(
+                "cv",
+                file.name,
+                requestCvFile
+            )
+
+            val response = getResponse {
+                jobService.applyJob(
+                    jobId = jobId.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
+                    cv = cvMultipart
+                )
+            }
+            emit(response)
+        }.flowOn(Dispatchers.IO)
 }
