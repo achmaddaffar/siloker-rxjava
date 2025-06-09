@@ -5,19 +5,25 @@ import android.net.Uri
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
+import com.oliver.siloker.data.mapper.toApplicantsLatestDomain
 import com.oliver.siloker.data.mapper.toJobDetailDomain
+import com.oliver.siloker.data.mapper.toJobLatestDomain
 import com.oliver.siloker.data.network.model.response.BaseResponse
+import com.oliver.siloker.data.network.paging.GetApplicantsPagingSource
 import com.oliver.siloker.data.network.paging.GetJobPagingSource
 import com.oliver.siloker.data.network.service.JobService
 import com.oliver.siloker.data.pref.SiLokerPreference
 import com.oliver.siloker.data.util.getResponse
 import com.oliver.siloker.domain.error.NetworkError
+import com.oliver.siloker.domain.model.response.ApplicantsResponseItem
+import com.oliver.siloker.domain.model.response.GetLatestApplicationResponse
+import com.oliver.siloker.domain.model.response.GetLatestJobResponse
 import com.oliver.siloker.domain.model.response.JobAdResponseItem
 import com.oliver.siloker.domain.model.response.JobDetailResponse
 import com.oliver.siloker.domain.repository.JobRepository
+import com.oliver.siloker.domain.util.FileUtil
 import com.oliver.siloker.domain.util.Result
 import com.oliver.siloker.domain.util.map
-import com.oliver.siloker.domain.util.FileUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -50,6 +56,19 @@ class JobRepositoryImpl(
     }
         .flow
         .flowOn(Dispatchers.IO)
+
+    override fun getLatestJobs(): Flow<Result<GetLatestJobResponse, NetworkError>> =
+        flow {
+            val response = getResponse {
+                jobService.getJobs(
+                    query = "",
+                    employerId = preference.getEmployerId(),
+                    page = 1,
+                    size = 5
+                )
+            }
+            emit(response.map { it.data.toJobLatestDomain() })
+        }
 
     override fun getJobDetail(
         jobId: Long
@@ -104,4 +123,28 @@ class JobRepositoryImpl(
             }
             emit(response)
         }.flowOn(Dispatchers.IO)
+
+    override fun getApplicants(
+        jobId: Long?
+    ): Flow<PagingData<ApplicantsResponseItem>> = Pager(
+        PagingConfig(GetApplicantsPagingSource.PAGE_SIZE)
+    ) {
+        GetApplicantsPagingSource { page, size ->
+            jobService.getApplicants(jobId, page, size)
+        }
+    }
+        .flow
+        .flowOn(Dispatchers.IO)
+
+    override fun getLatestApplication(): Flow<Result<GetLatestApplicationResponse, NetworkError>> =
+        flow {
+            val response = getResponse {
+                jobService.getApplicants(
+                    jobId = null,
+                    page = 1,
+                    size = 5
+                )
+            }
+            emit(response.map { it.data.toApplicantsLatestDomain() })
+        }
 }

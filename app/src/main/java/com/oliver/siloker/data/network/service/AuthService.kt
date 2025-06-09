@@ -2,8 +2,8 @@ package com.oliver.siloker.data.network.service
 
 import com.oliver.siloker.data.network.model.request.LoginRequestDto
 import com.oliver.siloker.data.network.model.response.BaseResponse
+import com.oliver.siloker.data.network.model.response.LoginResponseDto
 import okhttp3.MultipartBody
-import okhttp3.RequestBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.Multipart
@@ -15,7 +15,7 @@ interface AuthService {
     @POST("auth/login")
     suspend fun login(
         @Body request: LoginRequestDto
-    ): Response<BaseResponse<String>>
+    ): Response<BaseResponse<LoginResponseDto>>
 
     @Multipart
     @POST("auth/register")

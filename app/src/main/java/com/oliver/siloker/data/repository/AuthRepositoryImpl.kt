@@ -12,6 +12,7 @@ import com.oliver.siloker.domain.model.request.LoginRequest
 import com.oliver.siloker.domain.model.request.RegisterRequest
 import com.oliver.siloker.domain.repository.AuthRepository
 import com.oliver.siloker.domain.util.Result
+import com.oliver.siloker.domain.util.asEmptyDataResult
 import com.oliver.siloker.domain.util.onSuccess
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -23,11 +24,15 @@ class AuthRepositoryImpl(
     private val preference: SiLokerPreference,
     private val application: Application
 ) : AuthRepository {
-    override fun login(request: LoginRequest): Flow<Result<BaseResponse<String>, NetworkError>> =
+    override fun login(request: LoginRequest): Flow<Result<Unit, NetworkError>> =
         flow {
             val result = getResponse { authService.login(request.toLoginDto()) }
-            result.onSuccess { preference.putToken(it.data) }
-            emit(result)
+            result.onSuccess {
+                preference.putToken(it.data.token)
+                preference.putEmployerId(it.data.employerId ?: -1)
+                preference.putJobSeekerId(it.data.jobSeekerId ?: -1)
+            }
+            emit(result.asEmptyDataResult())
         }
 
     override fun register(request: RegisterRequest): Flow<Result<BaseResponse<Boolean>, NetworkError>> =
@@ -42,5 +47,7 @@ class AuthRepositoryImpl(
 
     override fun logout() {
         preference.putToken(null)
+        preference.putEmployerId(-1)
+        preference.putJobSeekerId(-1)
     }
 }

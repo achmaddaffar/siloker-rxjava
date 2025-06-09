@@ -1,6 +1,7 @@
 package com.oliver.siloker.data.network.service
 
 import com.oliver.siloker.data.network.model.response.BaseResponse
+import com.oliver.siloker.data.network.model.response.GetApplicantsResponseDto
 import com.oliver.siloker.data.network.model.response.JobAdResponseDto
 import com.oliver.siloker.data.network.model.response.JobDetailResponseDto
 import okhttp3.MultipartBody
@@ -37,9 +38,16 @@ interface JobService {
     ): Response<BaseResponse<Boolean>>
 
     @Multipart
-    @POST
+    @POST("job/apply")
     suspend fun applyJob(
         @Part("job_id") jobId: RequestBody,
         @Part("cv") cv: MultipartBody.Part
     ): Response<BaseResponse<Boolean>>
+
+    @GET("job/applicants")
+    suspend fun getApplicants(
+        @Query("job_id") jobId: Long?,
+        @Query("page") page: Int,
+        @Query("size") size: Int
+    ): Response<BaseResponse<GetApplicantsResponseDto>>
 }

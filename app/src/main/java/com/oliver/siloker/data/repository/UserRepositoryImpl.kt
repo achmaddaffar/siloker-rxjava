@@ -7,6 +7,7 @@ import com.oliver.siloker.data.mapper.toGetProfileDomain
 import com.oliver.siloker.data.mapper.toJobSeekerDto
 import com.oliver.siloker.data.network.model.response.BaseResponse
 import com.oliver.siloker.data.network.service.UserService
+import com.oliver.siloker.data.pref.SiLokerPreference
 import com.oliver.siloker.data.util.getResponse
 import com.oliver.siloker.domain.error.NetworkError
 import com.oliver.siloker.domain.model.request.UpdateEmployerRequest
@@ -16,6 +17,7 @@ import com.oliver.siloker.domain.repository.UserRepository
 import com.oliver.siloker.domain.util.Result
 import com.oliver.siloker.domain.util.map
 import com.oliver.siloker.domain.util.FileUtil
+import com.oliver.siloker.domain.util.onSuccess
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -26,12 +28,17 @@ import okhttp3.RequestBody.Companion.asRequestBody
 
 class UserRepositoryImpl(
     private val userService: UserService,
+    private val preference: SiLokerPreference,
     private val application: Application
 ) : UserRepository {
 
     override fun getProfile(): Flow<Result<GetProfileResponse, NetworkError>> =
         flow {
             val response = getResponse { userService.getProfile() }
+            response.onSuccess {
+                preference.putEmployerId(it.data.employer?.id ?: -1)
+                preference.putJobSeekerId(it.data.jobSeeker?.id ?: -1)
+            }
             emit(response.map { it.data.toGetProfileDomain() })
         }
 
@@ -58,4 +65,8 @@ class UserRepositoryImpl(
             val response = getResponse { userService.updateEmployer(request.toEmployerDto()) }
             emit(response)
         }
+
+    override fun getEmployerId(): Long = preference.getEmployerId()
+
+    override fun getJobSeekerId(): Long = preference.getJobSeekerId()
 }

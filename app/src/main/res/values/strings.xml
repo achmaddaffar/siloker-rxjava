@@ -81,4 +81,11 @@
     <string name="upload_cv">Upload CV</string>
     <string name="employer">Employer</string>
     <string name="s_at_s">%s at %s</string>
+    <string name="job_application">Job Application</string>
+    <string name="advertised_job">Advertised Job</string>
+    <string name="latest_job_application">Latest Job Application</string>
+    <string name="more">More</string>
+    <string name="latest_job_advertised">Latest Job Advertised</string>
+    <string name="you_haven_t_filled_job_seeker_role">You haven\'t filled Job Seeker role</string>
+    <string name="you_haven_t_filled_employer_role">You haven\'t filled Employer role</string>
 </resources>

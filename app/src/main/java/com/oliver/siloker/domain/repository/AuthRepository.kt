@@ -11,7 +11,7 @@ interface AuthRepository {
 
     fun login(
         request: LoginRequest
-    ): Flow<Result<BaseResponse<String>, NetworkError>>
+    ): Flow<Result<Unit, NetworkError>>
 
     fun register(
         request: RegisterRequest

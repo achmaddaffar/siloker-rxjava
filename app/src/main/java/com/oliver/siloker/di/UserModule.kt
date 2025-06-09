@@ -2,6 +2,7 @@ package com.oliver.siloker.di
 
 import android.app.Application
 import com.oliver.siloker.data.network.service.UserService
+import com.oliver.siloker.data.pref.SiLokerPreference
 import com.oliver.siloker.data.repository.UserRepositoryImpl
 import com.oliver.siloker.domain.repository.UserRepository
 import dagger.Module
@@ -22,6 +23,7 @@ object UserModule {
     @Provides
     fun providesUserRepository(
         userService: UserService,
+        preference: SiLokerPreference,
         application: Application
-    ): UserRepository = UserRepositoryImpl(userService, application)
+    ): UserRepository = UserRepositoryImpl(userService, preference, application)
 }

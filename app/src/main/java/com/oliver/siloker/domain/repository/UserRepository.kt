@@ -22,4 +22,8 @@ interface UserRepository {
     fun updateEmployer(
         request: UpdateEmployerRequest
     ): Flow<Result<BaseResponse<Boolean>, NetworkError>>
+
+    fun getEmployerId(): Long
+
+    fun getJobSeekerId(): Long
 }

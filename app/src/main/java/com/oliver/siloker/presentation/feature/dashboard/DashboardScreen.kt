@@ -98,6 +98,7 @@ fun DashboardScreen(
                 )
 
                 1 -> HistoryContent(
+                    snackbarHostState = snackbarHostState,
                     modifier = Modifier.fillMaxSize()
                 )
 
