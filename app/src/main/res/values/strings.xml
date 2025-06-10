@@ -88,4 +88,6 @@
     <string name="latest_job_advertised">Latest Job Advertised</string>
     <string name="you_haven_t_filled_job_seeker_role">You haven\'t filled Job Seeker role</string>
     <string name="you_haven_t_filled_employer_role">You haven\'t filled Employer role</string>
+    <string name="status_sc">Status: </string>
+    <string name="contact_employer">Contact Employer</string>
 </resources>

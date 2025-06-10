@@ -9,4 +9,7 @@ sealed interface JobRoutes {
 
     @Serializable
     data class JobDetailScreen(val jobId: Long) : JobRoutes
+
+    @Serializable
+    data object JobApplicationListScreen : JobRoutes
 }

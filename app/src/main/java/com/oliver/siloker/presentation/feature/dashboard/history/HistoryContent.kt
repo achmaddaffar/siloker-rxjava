@@ -36,7 +36,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.oliver.siloker.R
 import com.oliver.siloker.presentation.component.LoadingDialog
-import com.oliver.siloker.presentation.feature.dashboard.component.JobAdCard
+import com.oliver.siloker.presentation.component.JobAdCard
 import com.oliver.siloker.presentation.ui.theme.AppTypography
 import com.oliver.siloker.presentation.util.ErrorMessageUtil.parseNetworkError
 
@@ -44,6 +44,8 @@ import com.oliver.siloker.presentation.util.ErrorMessageUtil.parseNetworkError
 @Composable
 fun HistoryContent(
     snackbarHostState: SnackbarHostState,
+    onMoreApplicantsNavigate: () -> Unit,
+    onMoreJobsAdvertisedNavigate: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val viewModel = hiltViewModel<HistoryViewModel>()
@@ -135,9 +137,7 @@ fun HistoryContent(
                         style = AppTypography.bodyLarge
                     )
                     TextButton(
-                        onClick = {
-
-                        }
+                        onClick = onMoreApplicantsNavigate
                     ) {
                         Text(stringResource(R.string.more))
                     }
@@ -192,9 +192,7 @@ fun HistoryContent(
                         style = AppTypography.bodyLarge
                     )
                     TextButton(
-                        onClick = {
-
-                        }
+                        onClick = onMoreJobsAdvertisedNavigate
                     ) {
                         Text(stringResource(R.string.more))
                     }

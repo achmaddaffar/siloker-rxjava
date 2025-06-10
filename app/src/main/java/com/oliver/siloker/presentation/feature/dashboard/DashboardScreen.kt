@@ -37,6 +37,8 @@ fun DashboardScreen(
     onPostJobNavigate: () -> Unit,
     onEditJobSeekerNavigate: () -> Unit,
     onEditEmployerNavigate: () -> Unit,
+    onMoreApplicantsNavigate: () -> Unit,
+    onMoreJobsAdvertisedNavigate: () -> Unit,
     onLogoutNavigate: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -93,13 +95,16 @@ fun DashboardScreen(
         ) { tabIndex ->
             when (tabIndex) {
                 0 -> HomeContent(
+                    snackbarHostState = snackbarHostState,
                     onJobAdClick = onJobAdNavigate,
                     modifier = Modifier.fillMaxSize()
                 )
 
                 1 -> HistoryContent(
                     snackbarHostState = snackbarHostState,
-                    modifier = Modifier.fillMaxSize()
+                    onMoreApplicantsNavigate = onMoreApplicantsNavigate,
+                    onMoreJobsAdvertisedNavigate = onMoreJobsAdvertisedNavigate,
+                    modifier = Modifier.fillMaxSize(),
                 )
 
                 2 -> ProfileContent(

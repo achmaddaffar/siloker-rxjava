@@ -15,8 +15,11 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,10 +33,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.oliver.siloker.R
-import com.oliver.siloker.presentation.feature.dashboard.component.JobAdCard
+import com.oliver.siloker.presentation.component.JobAdCard
 
 @Composable
 fun HomeContent(
+    snackbarHostState: SnackbarHostState,
     onJobAdClick: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -42,6 +46,15 @@ fun HomeContent(
 
     val state by viewModel.state.collectAsStateWithLifecycle()
     val jobAdItems = viewModel.jobs.collectAsLazyPagingItems()
+
+    LaunchedEffect(Unit) {
+        viewModel.pagingError.collect { error ->
+            snackbarHostState.showSnackbar(
+                message = error.message.toString(),
+                duration = SnackbarDuration.Short
+            )
+        }
+    }
 
     Column(
         modifier = modifier.padding(horizontal = 16.dp)

@@ -12,13 +12,13 @@ import androidx.lifecycle.compose.dropUnlessResumed
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.toRoute
 import com.oliver.siloker.presentation.feature.auth.login.LoginScreen
 import com.oliver.siloker.presentation.feature.auth.register.RegisterScreen
 import com.oliver.siloker.presentation.feature.auth.splash.SplashScreen
 import com.oliver.siloker.presentation.feature.dashboard.DashboardScreen
 import com.oliver.siloker.presentation.feature.dashboard.profile.edit_employer.EditEmployerScreen
 import com.oliver.siloker.presentation.feature.dashboard.profile.edit_job_seeker.EditJobSeekerScreen
+import com.oliver.siloker.presentation.feature.job.application.JobApplicationListScreen
 import com.oliver.siloker.presentation.feature.job.detail.JobDetailScreen
 import com.oliver.siloker.presentation.feature.job.post.PostJobScreen
 import com.oliver.siloker.presentation.navigation.route.AuthRoutes
@@ -121,6 +121,12 @@ fun SiLokerNavigation(
                             }
                         }
                     },
+                    onMoreApplicantsNavigate = dropUnlessResumed {
+                        navController.navigate(JobRoutes.JobApplicationListScreen)
+                    },
+                    onMoreJobsAdvertisedNavigate = dropUnlessResumed {
+
+                    },
                     modifier = modifier
                 )
             }
@@ -158,6 +164,16 @@ fun SiLokerNavigation(
             composable<JobRoutes.JobDetailScreen> {
                 JobDetailScreen(
                     snackbarHostState = snackbarHostState,
+                    modifier = modifier
+                )
+            }
+
+            composable<JobRoutes.JobApplicationListScreen> {
+                JobApplicationListScreen(
+                    snackbarHostState = snackbarHostState,
+                    onJobAdNavigate = dropUnlessResumedWithParam(navController){
+                        navController.navigate(JobRoutes.JobDetailScreen(it))
+                    },
                     modifier = modifier
                 )
             }
