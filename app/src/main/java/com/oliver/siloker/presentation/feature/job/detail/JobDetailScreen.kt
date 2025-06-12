@@ -51,6 +51,7 @@ import com.oliver.siloker.R
 import com.oliver.siloker.domain.util.DateUtil
 import com.oliver.siloker.domain.util.FileUtil
 import com.oliver.siloker.presentation.component.LoadingDialog
+import com.oliver.siloker.presentation.component.ResultDialog
 import com.oliver.siloker.presentation.component.dottedBorder
 import com.oliver.siloker.presentation.ui.theme.AppTypography
 import com.oliver.siloker.presentation.util.ErrorMessageUtil.parseNetworkError
@@ -58,6 +59,7 @@ import com.oliver.siloker.presentation.util.ErrorMessageUtil.parseNetworkError
 @Composable
 fun JobDetailScreen(
     snackbarHostState: SnackbarHostState,
+    onBackNavigate: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val viewModel = hiltViewModel<JobDetailViewModel>()
@@ -69,6 +71,7 @@ fun JobDetailScreen(
     }
 
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val isApplyEnabled by viewModel.isApplyEnabled.collectAsStateWithLifecycle()
     var isUploadSectionVisible by rememberSaveable { mutableStateOf(false) }
     var isSuccessPopUpVisible by rememberSaveable { mutableStateOf(false) }
 
@@ -90,6 +93,16 @@ fun JobDetailScreen(
     }
 
     if (state.isLoading) LoadingDialog()
+    if (isSuccessPopUpVisible) {
+        ResultDialog(
+            title = stringResource(R.string.success),
+            image = R.drawable.illustration_success,
+            description = "Application has been submitted",
+            onDismissRequest = {  },
+            primaryButtonText = stringResource(R.string.back),
+            onPrimaryButtonClick = onBackNavigate
+        )
+    }
 
     Column(
         modifier = modifier
@@ -216,7 +229,7 @@ fun JobDetailScreen(
                         viewModel.applyJob()
                     } else isUploadSectionVisible = true
                 },
-                enabled = state.jobDetail.isApplicable,
+                enabled = if (isUploadSectionVisible) isApplyEnabled else true,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(stringResource(R.string.apply))

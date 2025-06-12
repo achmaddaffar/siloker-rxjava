@@ -67,6 +67,7 @@ fun PostJobScreen(
     }
 
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val isPostEnabled by viewModel.isPostEnabled.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         viewModel.event.collect { event ->
@@ -168,7 +169,7 @@ fun PostJobScreen(
             onClick = {
                 viewModel.postJob()
             },
-            enabled = !state.isLoading,
+            enabled = isPostEnabled,
             modifier = Modifier.fillMaxWidth()
         ) {
             if (state.isLoading) CircularProgressIndicator()

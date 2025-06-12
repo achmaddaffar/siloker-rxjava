@@ -18,6 +18,9 @@ import com.oliver.siloker.presentation.feature.auth.splash.SplashScreen
 import com.oliver.siloker.presentation.feature.dashboard.DashboardScreen
 import com.oliver.siloker.presentation.feature.dashboard.profile.edit_employer.EditEmployerScreen
 import com.oliver.siloker.presentation.feature.dashboard.profile.edit_job_seeker.EditJobSeekerScreen
+import com.oliver.siloker.presentation.feature.job.ad.JobAdvertisedListScreen
+import com.oliver.siloker.presentation.feature.job.applicant.JobApplicantScreen
+import com.oliver.siloker.presentation.feature.job.applicant_detail.JobApplicantDetailScreen
 import com.oliver.siloker.presentation.feature.job.application.JobApplicationListScreen
 import com.oliver.siloker.presentation.feature.job.detail.JobDetailScreen
 import com.oliver.siloker.presentation.feature.job.post.PostJobScreen
@@ -100,10 +103,13 @@ fun SiLokerNavigation(
             composable<DashboardRoutes.DashboardScreen> {
                 DashboardScreen(
                     snackbarHostState = snackbarHostState,
-                    onJobAdNavigate = dropUnlessResumedWithParam(
+                    onJobDetailNavigate = dropUnlessResumedWithParam(
                         navController
                     ) {
                         navController.navigate(JobRoutes.JobDetailScreen(it))
+                    },
+                    onJobAdvertisedNavigate = dropUnlessResumedWithParam(navController) {
+                        navController.navigate(JobRoutes.JobApplicantsScreen(it))
                     },
                     onPostJobNavigate = dropUnlessResumed {
                         navController.navigate(JobRoutes.PostJobScreen)
@@ -125,7 +131,7 @@ fun SiLokerNavigation(
                         navController.navigate(JobRoutes.JobApplicationListScreen)
                     },
                     onMoreJobsAdvertisedNavigate = dropUnlessResumed {
-
+                        navController.navigate(JobRoutes.JobAdvertisedListScreen)
                     },
                     modifier = modifier
                 )
@@ -164,6 +170,9 @@ fun SiLokerNavigation(
             composable<JobRoutes.JobDetailScreen> {
                 JobDetailScreen(
                     snackbarHostState = snackbarHostState,
+                    onBackNavigate = dropUnlessResumed {
+                        navController.navigateUp()
+                    },
                     modifier = modifier
                 )
             }
@@ -174,6 +183,33 @@ fun SiLokerNavigation(
                     onJobAdNavigate = dropUnlessResumedWithParam(navController){
                         navController.navigate(JobRoutes.JobDetailScreen(it))
                     },
+                    modifier = modifier
+                )
+            }
+
+            composable<JobRoutes.JobAdvertisedListScreen> {
+                JobAdvertisedListScreen(
+                    snackbarHostState = snackbarHostState,
+                    onJobAdClick = dropUnlessResumedWithParam(navController) {
+                        navController.navigate(JobRoutes.JobApplicantsScreen(it))
+                    },
+                    modifier = modifier
+                )
+            }
+
+            composable<JobRoutes.JobApplicantsScreen> {
+                JobApplicantScreen(
+                    snackbarHostState = snackbarHostState,
+                    onApplicantDetailNavigate = dropUnlessResumedWithParam(navController) {
+                        navController.navigate(JobRoutes.JobApplicantDetailScreen(it))
+                    },
+                    modifier = modifier
+                )
+            }
+
+            composable<JobRoutes.JobApplicantDetailScreen> {
+                JobApplicantDetailScreen(
+                    snackbarHostState = snackbarHostState,
                     modifier = modifier
                 )
             }

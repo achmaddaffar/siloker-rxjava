@@ -6,6 +6,7 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.oliver.siloker.data.mapper.toApplicantsLatestDomain
+import com.oliver.siloker.data.mapper.toDomain
 import com.oliver.siloker.data.mapper.toJobDetailDomain
 import com.oliver.siloker.data.mapper.toJobLatestDomain
 import com.oliver.siloker.data.network.model.response.BaseResponse
@@ -13,6 +14,7 @@ import com.oliver.siloker.data.network.paging.GetApplicantsPagingSource
 import com.oliver.siloker.data.network.paging.GetJobPagingSource
 import com.oliver.siloker.data.network.service.JobService
 import com.oliver.siloker.data.pref.SiLokerPreference
+import com.oliver.siloker.data.util.DownloadUtil
 import com.oliver.siloker.data.util.getResponse
 import com.oliver.siloker.domain.error.NetworkError
 import com.oliver.siloker.domain.model.response.ApplicantsResponseItem
@@ -23,7 +25,9 @@ import com.oliver.siloker.domain.model.response.JobDetailResponse
 import com.oliver.siloker.domain.repository.JobRepository
 import com.oliver.siloker.domain.util.FileUtil
 import com.oliver.siloker.domain.util.Result
+import com.oliver.siloker.domain.util.asEmptyDataResult
 import com.oliver.siloker.domain.util.map
+import com.oliver.siloker.domain.util.onSuccess
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -41,14 +45,14 @@ class JobRepositoryImpl(
 
     override fun getJobs(
         query: String,
-        employerId: Long?
+        isOwner: Boolean
     ): Flow<PagingData<JobAdResponseItem>> = Pager(
         PagingConfig(GetJobPagingSource.PAGE_SIZE)
     ) {
         GetJobPagingSource { page, size ->
             jobService.getJobs(
                 query = query,
-                employerId = employerId,
+                employerId = if (isOwner) preference.getEmployerId() else null,
                 page = page,
                 size = size
             )
@@ -136,6 +140,12 @@ class JobRepositoryImpl(
         .flow
         .flowOn(Dispatchers.IO)
 
+    override fun getApplicant(applicantId: Long): Flow<Result<ApplicantsResponseItem, NetworkError>> =
+        flow {
+            val response = getResponse { jobService.getApplicant(applicantId) }
+            emit(response.map { it.data.toDomain() })
+        }
+
     override fun getLatestApplication(): Flow<Result<GetLatestApplicationResponse, NetworkError>> =
         flow {
             val response = getResponse {
@@ -146,5 +156,31 @@ class JobRepositoryImpl(
                 )
             }
             emit(response.map { it.data.toApplicantsLatestDomain() })
+        }
+
+    override fun downloadCv(cvUrl: String): Flow<Result<Unit, NetworkError>> =
+        flow {
+            val response = getResponse { jobService.downloadCv(cvUrl) }
+            response.onSuccess { body ->
+                DownloadUtil.saveFileToPublicDownloads(
+                    context = application,
+                    fileName = cvUrl.split("/").last(),
+                    mimeType = "application/pdf",
+                    body = body
+                )
+            }
+            emit(response.asEmptyDataResult())
+        }
+
+    override fun acceptApplicant(applicantId: Long): Flow<Result<ApplicantsResponseItem, NetworkError>> =
+        flow {
+            val response = getResponse { jobService.acceptApplicant(applicantId) }
+            emit(response.map { it.data.toDomain() })
+        }
+
+    override fun rejectApplicant(applicantId: Long): Flow<Result<ApplicantsResponseItem, NetworkError>> =
+        flow {
+            val response = getResponse { jobService.rejectApplicant(applicantId) }
+            emit(response.map { it.data.toDomain() })
         }
 }

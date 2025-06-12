@@ -1,9 +1,10 @@
-package com.oliver.siloker.presentation.feature.job.detail
+package com.oliver.siloker.presentation.feature.job.applicant
 
-import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import com.oliver.siloker.domain.repository.JobRepository
 import com.oliver.siloker.domain.util.onError
 import com.oliver.siloker.domain.util.onSuccess
@@ -12,8 +13,8 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
@@ -22,37 +23,36 @@ import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 @HiltViewModel
-class JobDetailViewModel @Inject constructor(
+class JobApplicantsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val jobRepository: JobRepository
 ) : ViewModel() {
 
     private val jobId: Long = checkNotNull(savedStateHandle["jobId"])
 
-    private val _state = MutableStateFlow(JobDetailState())
+    private val _state = MutableStateFlow(JobApplicantsState())
     val state = _state
         .onStart { getJobDetail() }
         .stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(15000L),
-            JobDetailState()
+            JobApplicantsState()
         )
 
-    private val _event = MutableSharedFlow<JobDetailEvent>()
+    private val _event = MutableSharedFlow<JobApplicantsEvent>()
     val event = _event.asSharedFlow()
 
-    val isApplyEnabled = _state
-        .map {
-            it.jobDetail.isApplicable && !it.isLoading && it.cvUri != Uri.EMPTY
-        }
+    val applicants = jobRepository.getApplicants(jobId)
+        .cachedIn(viewModelScope)
+        .catch { _event.emit(JobApplicantsEvent.PagingError(it)) }
         .stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(15000L),
-            false
+            PagingData.empty()
         )
 
-    fun setCvUri(value: Uri) {
-        _state.update { it.copy(cvUri = value) }
+    fun setIsRefreshing(value: Boolean) {
+        _state.update { it.copy(isRefreshing = value) }
     }
 
     fun getJobDetail() {
@@ -62,22 +62,22 @@ class JobDetailViewModel @Inject constructor(
             .onEach { result ->
                 result
                     .onSuccess { response -> _state.update { it.copy(jobDetail = response) } }
-                    .onError { _event.emit(JobDetailEvent.Error(it)) }
+                    .onError { _event.emit(JobApplicantsEvent.Error(it)) }
             }
-            .onCompletion { _state.update { it.copy(isLoading = false) } }
+            .onCompletion { _state.update { it.copy(isLoading = false, isRefreshing = false) } }
             .launchIn(viewModelScope)
     }
 
-    fun applyJob() {
+    fun downloadCv(cvUrl: String) {
         jobRepository
-            .applyJob(jobId, _state.value.cvUri)
+            .downloadCv(cvUrl)
             .onStart { _state.update { it.copy(isLoading = true) } }
             .onEach { result ->
                 result
-                    .onSuccess { _event.emit(JobDetailEvent.Success) }
-                    .onError { _event.emit(JobDetailEvent.Error(it)) }
+                    .onSuccess { _event.emit(JobApplicantsEvent.DownloadSuccess) }
+                    .onError { _event.emit(JobApplicantsEvent.Error(it)) }
             }
-            .onCompletion { _state.update { it.copy(isLoading = false) } }
+            .onCompletion { _state.update { it.copy(isLoading = false, isRefreshing = false) } }
             .launchIn(viewModelScope)
     }
 }

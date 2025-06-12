@@ -79,6 +79,12 @@ data class GetApplicantsResponseItemDto(
     @field:SerializedName("phone_number")
     val phoneNumber: String? = null,
 
+    @field:SerializedName("profile_picture_url")
+    val profilePictureUrl: String? = null,
+
+    @field:SerializedName("employer_phone_number")
+    val employerPhoneNumber: String? = null,
+
     @field:SerializedName("id")
     val id: Long? = null,
 

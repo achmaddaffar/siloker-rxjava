@@ -89,5 +89,10 @@
     <string name="you_haven_t_filled_job_seeker_role">You haven\'t filled Job Seeker role</string>
     <string name="you_haven_t_filled_employer_role">You haven\'t filled Employer role</string>
     <string name="status_sc">Status: </string>
-    <string name="contact_employer">Contact Employer</string>
+    <string name="chat_employer">Chat Employer</string>
+    <string name="applicants">Applicants</string>
+    <string name="reject">Reject</string>
+    <string name="accept">Accept</string>
+    <string name="cv">CV</string>
+    <string name="cv_has_been_downloaded_successfully">CV has been downloaded successfully</string>
 </resources>

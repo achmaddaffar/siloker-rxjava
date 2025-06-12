@@ -33,7 +33,8 @@ import com.oliver.siloker.presentation.feature.dashboard.profile.ProfileContent
 @Composable
 fun DashboardScreen(
     snackbarHostState: SnackbarHostState,
-    onJobAdNavigate: (Long) -> Unit,
+    onJobDetailNavigate: (Long) -> Unit,
+    onJobAdvertisedNavigate: (Long) -> Unit,
     onPostJobNavigate: () -> Unit,
     onEditJobSeekerNavigate: () -> Unit,
     onEditEmployerNavigate: () -> Unit,
@@ -96,7 +97,7 @@ fun DashboardScreen(
             when (tabIndex) {
                 0 -> HomeContent(
                     snackbarHostState = snackbarHostState,
-                    onJobAdClick = onJobAdNavigate,
+                    onJobAdClick = onJobDetailNavigate,
                     modifier = Modifier.fillMaxSize()
                 )
 
@@ -104,6 +105,8 @@ fun DashboardScreen(
                     snackbarHostState = snackbarHostState,
                     onMoreApplicantsNavigate = onMoreApplicantsNavigate,
                     onMoreJobsAdvertisedNavigate = onMoreJobsAdvertisedNavigate,
+                    onJobApplicationClick = onJobDetailNavigate,
+                    onJobAdvertisedClick = onJobAdvertisedNavigate,
                     modifier = Modifier.fillMaxSize(),
                 )
 

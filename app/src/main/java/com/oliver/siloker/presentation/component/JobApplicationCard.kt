@@ -85,11 +85,13 @@ fun JobApplicationCard(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    OutlinedButton(
-                        onClick = onContactEmployerClick
-                    ) {
-                        Text(stringResource(R.string.contact_employer))
-                    }
+                    if (status == "ACCEPTED")
+                        OutlinedButton(
+                            onClick = onContactEmployerClick
+                        ) {
+                            Text(stringResource(R.string.chat_employer))
+                        }
+                    else Box {}
                     Row {
                         Text(
                             text = stringResource(R.string.status_sc),
@@ -98,7 +100,7 @@ fun JobApplicationCard(
                         Spacer(Modifier.width(8.dp))
                         Text(
                             text = status,
-                            color = when(status) {
+                            color = when (status) {
                                 "PENDING" -> Color.Yellow
                                 "ACCEPTED" -> Color.Green
                                 "REJECTED" -> Color.Red

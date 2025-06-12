@@ -1,5 +1,6 @@
 package com.oliver.siloker.presentation.feature.dashboard.history
 
+import android.content.Intent
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,11 +33,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.oliver.siloker.R
 import com.oliver.siloker.presentation.component.LoadingDialog
 import com.oliver.siloker.presentation.component.JobAdCard
+import com.oliver.siloker.presentation.component.JobApplicationCard
 import com.oliver.siloker.presentation.ui.theme.AppTypography
 import com.oliver.siloker.presentation.util.ErrorMessageUtil.parseNetworkError
 
@@ -46,6 +49,8 @@ fun HistoryContent(
     snackbarHostState: SnackbarHostState,
     onMoreApplicantsNavigate: () -> Unit,
     onMoreJobsAdvertisedNavigate: () -> Unit,
+    onJobApplicationClick: (Long) -> Unit,
+    onJobAdvertisedClick: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val viewModel = hiltViewModel<HistoryViewModel>()
@@ -149,15 +154,25 @@ fun HistoryContent(
                     item {}
                     items(state.latestApplications.size) {
                         val application = state.latestApplications[it]
-                        JobAdCard(
+                        JobApplicationCard(
                             image = application.imageUrl,
                             title = application.title,
                             description = application.description,
                             onClick = {
-
+                                onJobApplicationClick(application.jobId)
                             },
+                            onContactEmployerClick = {
+                                val formattedPhoneNumber =
+                                    if (application.employerPhoneNumber.startsWith("0") == true)
+                                        "62${application.employerPhoneNumber.drop(1)}"
+                                    else application.employerPhoneNumber
+                                val url = "https://wa.me/$formattedPhoneNumber"
+                                val intent = Intent(Intent.ACTION_VIEW, url.toUri())
+                                context.startActivity(intent)
+                            },
+                            status = application.status,
                             modifier = Modifier
-                                .width(250.dp)
+                                .width(400.dp)
                                 .height(IntrinsicSize.Max)
                         )
                     }
@@ -209,7 +224,7 @@ fun HistoryContent(
                             title = job.title,
                             description = job.description,
                             onClick = {
-
+                                onJobAdvertisedClick(job.id)
                             },
                             modifier = Modifier
                                 .width(250.dp)

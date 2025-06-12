@@ -9,11 +9,14 @@ import com.oliver.siloker.domain.util.onSuccess
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -28,6 +31,16 @@ class PostJobViewModel @Inject constructor(
 
     private val _event = MutableSharedFlow<PostJobEvent>()
     val event = _event.asSharedFlow()
+
+    val isPostEnabled = _state
+        .map {
+            !it.isLoading && it.title.isNotEmpty() && it.description.isNotEmpty() && it.selectedImageUri != Uri.EMPTY
+        }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(15000L),
+            false
+        )
 
     fun setImageUri(uri: Uri) {
         _state.update { it.copy(selectedImageUri = uri) }

@@ -115,7 +115,7 @@ fun ProfileContent(
                         val formattedUrl = if (resumeUrl.startsWith("http://") || resumeUrl.startsWith("https://")) {
                             resumeUrl
                         } else {
-                            "http://$resumeUrl" // add scheme if missing
+                            "http://$resumeUrl"
                         }
                         val intent = Intent(
                             Intent.ACTION_VIEW,

@@ -2,6 +2,7 @@ package com.oliver.siloker.data.mapper
 
 import com.oliver.siloker.BuildConfig
 import com.oliver.siloker.data.network.model.response.GetApplicantsResponseDto
+import com.oliver.siloker.data.network.model.response.GetApplicantsResponseItemDto
 import com.oliver.siloker.data.network.model.response.JobAdResponseDto
 import com.oliver.siloker.data.network.model.response.JobDetailResponseDto
 import com.oliver.siloker.domain.model.response.ApplicantsResponseItem
@@ -48,10 +49,12 @@ fun GetApplicantsResponseDto.toApplicantsDomain() = this.content?.map {
         resumeUrl = it?.resumeUrl ?: "",
         fullName = it?.fullName ?: "",
         phoneNumber = it?.phoneNumber ?: "",
+        profilePictureUrl = "${BuildConfig.BASE_URL}${it?.profilePictureUrl?.drop(1)}",
         skills = it?.skills?.map { skill -> skill?.name ?: "" } ?: emptyList(),
         experiences = it?.experiences?.map { exp -> exp?.name ?: "" } ?: emptyList(),
         bio = it?.bio ?: "",
         jobSeekerId = it?.jobSeekerId ?: -1,
+        employerPhoneNumber = it?.employerPhoneNumber ?: "",
         cvUrl = it?.cvUrl ?: "",
         status = it?.status ?: "",
         jobId = it?.jobId ?: -1,
@@ -62,6 +65,27 @@ fun GetApplicantsResponseDto.toApplicantsDomain() = this.content?.map {
         createdAt = it?.createdAt ?: ""
     )
 }
+
+fun GetApplicantsResponseItemDto.toDomain() = ApplicantsResponseItem(
+    id = this.id ?: -1,
+    resumeUrl = this.resumeUrl ?: "",
+    fullName = this.fullName ?: "",
+    phoneNumber = this.phoneNumber ?: "",
+    profilePictureUrl = "${BuildConfig.BASE_URL}${this.profilePictureUrl?.drop(1)}",
+    skills = this.skills?.map { skill -> skill?.name ?: "" } ?: emptyList(),
+    experiences = this.experiences?.map { exp -> exp?.name ?: "" } ?: emptyList(),
+    bio = this.bio ?: "",
+    jobSeekerId = this.jobSeekerId ?: -1,
+    employerPhoneNumber = this.employerPhoneNumber ?: "",
+    cvUrl = this.cvUrl ?: "",
+    status = this.status ?: "",
+    jobId = this.jobId ?: -1,
+    title = this.title ?: "",
+    description = this.description ?: "",
+    imageUrl = "${BuildConfig.BASE_URL}${this.imageUrl?.drop(1)}",
+    updatedAt = this.updatedAt ?: "",
+    createdAt = this.createdAt ?: ""
+)
 
 fun GetApplicantsResponseDto.toApplicantsLatestDomain() = GetLatestApplicationResponse(
     totalItem = this.totalItem ?: -1,

@@ -1,6 +1,5 @@
-package com.oliver.siloker.presentation.feature.job.application
+package com.oliver.siloker.presentation.feature.job.ad
 
-import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -17,27 +16,24 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.oliver.siloker.R
-import com.oliver.siloker.presentation.component.JobApplicationCard
+import com.oliver.siloker.presentation.component.JobAdCard
 import com.oliver.siloker.presentation.ui.theme.AppTypography
 
 @Composable
-fun JobApplicationListScreen(
+fun JobAdvertisedListScreen(
     snackbarHostState: SnackbarHostState,
-    onJobAdNavigate: (Long) -> Unit,
+    onJobAdClick: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current
-    val viewModel = hiltViewModel<JobApplicationListViewModel>()
-
-    val applicantItems = viewModel.applicants.collectAsLazyPagingItems()
+    val viewModel = hiltViewModel<JobAdvertisedViewModel>()
+    
+    val jobs = viewModel.jobs.collectAsLazyPagingItems()
 
     LaunchedEffect(Unit) {
         viewModel.pagingError.collect { error ->
@@ -54,7 +50,7 @@ fun JobApplicationListScreen(
             .padding(horizontal = 16.dp)
     ) {
         Text(
-            text = stringResource(R.string.job_application),
+            text = stringResource(R.string.advertised_job),
             style = AppTypography.headlineMedium
         )
         Spacer(Modifier.height(12.dp))
@@ -63,34 +59,24 @@ fun JobApplicationListScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            if (applicantItems.loadState.refresh is LoadState.Loading) {
+            if (jobs.loadState.refresh is LoadState.Loading) {
                 item {
                     CircularProgressIndicator()
                 }
             }
-            items(applicantItems.itemCount) {
-                val applicant = applicantItems[it]
-                JobApplicationCard(
-                    image = applicant?.imageUrl,
-                    title = applicant?.title.toString(),
-                    description = applicant?.description.toString(),
-                    status = applicant?.status.toString(),
+            items(jobs.itemCount) {
+                val job = jobs[it]
+                JobAdCard(
+                    image = job?.imageUrl,
+                    title = job?.title.toString(),
+                    description = job?.description.toString(),
                     onClick = {
-                        onJobAdNavigate(applicant?.jobId ?: -1)
-                    },
-                    onContactEmployerClick = {
-                        val formattedPhoneNumber =
-                            if (applicant?.employerPhoneNumber?.startsWith("0") == true)
-                                "62${applicant.employerPhoneNumber.drop(1)}"
-                            else applicant?.employerPhoneNumber
-                        val url = "https://wa.me/$formattedPhoneNumber"
-                        val intent = Intent(Intent.ACTION_VIEW, url.toUri())
-                        context.startActivity(intent)
+                        onJobAdClick(job?.id ?: -1)
                     },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
-            if (applicantItems.loadState.append is LoadState.Loading) {
+            if (jobs.loadState.append is LoadState.Loading) {
                 item {
                     CircularProgressIndicator()
                 }

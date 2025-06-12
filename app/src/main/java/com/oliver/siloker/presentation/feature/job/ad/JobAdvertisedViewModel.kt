@@ -1,4 +1,4 @@
-package com.oliver.siloker.presentation.feature.job.application
+package com.oliver.siloker.presentation.feature.job.ad
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,16 +14,16 @@ import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 @HiltViewModel
-class JobApplicationListViewModel @Inject constructor(
+class JobAdvertisedViewModel @Inject constructor(
     private val jobRepository: JobRepository
-) : ViewModel() {
+): ViewModel() {
 
     private val _pagingError = MutableSharedFlow<Throwable>()
     val pagingError = _pagingError.asSharedFlow()
 
-    val applicants = jobRepository.getApplicants(null)
-        .catch { _pagingError.emit(it) }
+    val jobs = jobRepository.getJobs("", true)
         .cachedIn(viewModelScope)
+        .catch { _pagingError.emit(it) }
         .stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(15000L),

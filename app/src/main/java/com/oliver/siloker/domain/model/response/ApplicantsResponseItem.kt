@@ -5,6 +5,8 @@ data class ApplicantsResponseItem(
     val resumeUrl: String = "",
     val fullName: String = "",
     val phoneNumber: String = "",
+    val employerPhoneNumber: String = "",
+    val profilePictureUrl: String = "",
     val skills: List<String> = emptyList(),
     val experiences: List<String> = emptyList(),
     val bio: String = "",

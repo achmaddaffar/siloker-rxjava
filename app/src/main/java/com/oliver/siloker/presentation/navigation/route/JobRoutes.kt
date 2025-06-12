@@ -12,4 +12,13 @@ sealed interface JobRoutes {
 
     @Serializable
     data object JobApplicationListScreen : JobRoutes
+
+    @Serializable
+    data object JobAdvertisedListScreen : JobRoutes
+
+    @Serializable
+    data class JobApplicantsScreen(val jobId: Long) : JobRoutes
+
+    @Serializable
+    data class JobApplicantDetailScreen(val applicantId: Long) : JobRoutes
 }

@@ -16,7 +16,7 @@ interface JobRepository {
 
     fun getJobs(
         query: String,
-        employerId: Long? = null
+        isOwner: Boolean = false
     ): Flow<PagingData<JobAdResponseItem>>
 
     fun getLatestJobs(): Flow<Result<GetLatestJobResponse, NetworkError>>
@@ -40,5 +40,15 @@ interface JobRepository {
         jobId: Long?
     ): Flow<PagingData<ApplicantsResponseItem>>
 
+    fun getApplicant(
+        applicantId: Long
+    ): Flow<Result<ApplicantsResponseItem, NetworkError>>
+
     fun getLatestApplication(): Flow<Result<GetLatestApplicationResponse, NetworkError>>
+
+    fun downloadCv(cvUrl: String): Flow<Result<Unit, NetworkError>>
+
+    fun acceptApplicant(applicantId: Long): Flow<Result<ApplicantsResponseItem, NetworkError>>
+
+    fun rejectApplicant(applicantId: Long): Flow<Result<ApplicantsResponseItem, NetworkError>>
 }
