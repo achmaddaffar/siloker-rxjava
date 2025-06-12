@@ -13,11 +13,13 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -35,6 +37,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import com.oliver.siloker.R
 import com.oliver.siloker.presentation.component.JobAdCard
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeContent(
     snackbarHostState: SnackbarHostState,
@@ -82,31 +85,38 @@ fun HomeContent(
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(Modifier.height(16.dp))
-        LazyColumn(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+        PullToRefreshBox(
+            isRefreshing = false,
+            onRefresh = {
+                jobAdItems.refresh()
+            }
         ) {
-            if (jobAdItems.loadState.refresh is LoadState.Loading) {
-                item {
-                    CircularProgressIndicator()
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                if (jobAdItems.loadState.refresh is LoadState.Loading) {
+                    item {
+                        CircularProgressIndicator()
+                    }
                 }
-            }
-            items(jobAdItems.itemCount) {
-                val jobAd = jobAdItems[it]
-                JobAdCard(
-                    image = jobAd?.imageUrl,
-                    title = jobAd?.title.toString(),
-                    description = jobAd?.description.toString(),
-                    onClick = {
-                        jobAd?.id?.let { onJobAdClick(it) }
-                    },
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-            if (jobAdItems.loadState.append is LoadState.Loading) {
-                item {
-                    CircularProgressIndicator()
+                items(jobAdItems.itemCount) {
+                    val jobAd = jobAdItems[it]
+                    JobAdCard(
+                        image = jobAd?.imageUrl,
+                        title = jobAd?.title.toString(),
+                        description = jobAd?.description.toString(),
+                        onClick = {
+                            jobAd?.id?.let { onJobAdClick(it) }
+                        },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+                if (jobAdItems.loadState.append is LoadState.Loading) {
+                    item {
+                        CircularProgressIndicator()
+                    }
                 }
             }
         }
