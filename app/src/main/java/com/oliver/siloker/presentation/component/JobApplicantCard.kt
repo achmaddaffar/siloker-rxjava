@@ -30,8 +30,8 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.SubcomposeAsyncImage
-import com.oliver.siloker.R
 import com.oliver.siloker.presentation.ui.theme.AppTypography
+import com.oliver.siloker.rx.R
 
 @Composable
 fun JobApplicantCard(

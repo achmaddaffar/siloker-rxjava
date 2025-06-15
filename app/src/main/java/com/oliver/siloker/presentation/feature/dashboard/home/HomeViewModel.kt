@@ -4,21 +4,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import com.oliver.siloker.domain.model.response.JobAdResponseItem
 import com.oliver.siloker.domain.repository.JobRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.disposables.CompositeDisposable
+import io.reactivex.rxjava3.subjects.BehaviorSubject
+import io.reactivex.rxjava3.subjects.PublishSubject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.rx3.asFlow
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltViewModel
@@ -27,27 +23,35 @@ class HomeViewModel @Inject constructor(
     private val jobRepository: JobRepository
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(HomeState())
-    val state = _state.asStateFlow()
+    private val _state = BehaviorSubject.createDefault(HomeState())
+    val state = _state.hide()
 
-    private val _pagingError = MutableSharedFlow<Throwable>()
-    val pagingError = _pagingError.asSharedFlow()
+    private val _pagingError = PublishSubject.create<Throwable>()
+    val pagingError = _pagingError.hide()
 
-    val jobs = state
+    private val compositeDisposable = CompositeDisposable()
+
+    val jobs: Flow<PagingData<JobAdResponseItem>> = state
         .map { it.query }
         .distinctUntilChanged()
-        .flatMapLatest { query ->
-            delay(500)
-            jobRepository.getJobs(query).cachedIn(viewModelScope)
+        .debounce(500, TimeUnit.MILLISECONDS)
+        .switchMap { query ->
+            jobRepository.getJobs(query)
+                .onErrorResumeNext {
+                    _pagingError.onNext(it)
+                    Observable.empty()
+                }
         }
-        .catch { _pagingError.emit(it) }
-        .stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(15000L),
-            PagingData.empty()
-        )
+        .asFlow()
+        .cachedIn(viewModelScope)
+
 
     fun setQuery(value: String) {
-        _state.update { it.copy(query = value) }
+        _state.onNext(_state.value!!.copy(query = value))
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        compositeDisposable.clear()
     }
 }

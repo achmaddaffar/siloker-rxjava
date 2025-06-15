@@ -1,5 +1,6 @@
 package com.oliver.siloker.presentation.feature.job.ad
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -13,17 +14,20 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
-import com.oliver.siloker.R
 import com.oliver.siloker.presentation.component.JobAdCard
 import com.oliver.siloker.presentation.ui.theme.AppTypography
+import com.oliver.siloker.rx.R
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 
 @Composable
 fun JobAdvertisedListScreen(
@@ -32,16 +36,22 @@ fun JobAdvertisedListScreen(
     modifier: Modifier = Modifier
 ) {
     val viewModel = hiltViewModel<JobAdvertisedViewModel>()
+    val context = LocalContext.current
     
     val jobs = viewModel.jobs.collectAsLazyPagingItems()
 
-    LaunchedEffect(Unit) {
-        viewModel.pagingError.collect { error ->
-            snackbarHostState.showSnackbar(
-                message = error.message.toString(),
-                duration = SnackbarDuration.Short
-            )
-        }
+    DisposableEffect(Unit) {
+        val disposable = viewModel.pagingError
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe {
+                Toast.makeText(
+                    context,
+                    it.message.toString(),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+
+        onDispose { disposable.dispose() }
     }
 
     Column(

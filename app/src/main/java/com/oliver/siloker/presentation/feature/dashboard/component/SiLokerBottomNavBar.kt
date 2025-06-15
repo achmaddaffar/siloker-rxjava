@@ -12,7 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.sp
-import com.oliver.siloker.R
+import com.oliver.siloker.rx.R
 
 private fun getNavBarItems(context: Context) = listOf(
     NavBarItem(

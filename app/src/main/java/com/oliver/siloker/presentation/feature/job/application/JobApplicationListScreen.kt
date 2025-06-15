@@ -24,9 +24,9 @@ import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
-import com.oliver.siloker.R
 import com.oliver.siloker.presentation.component.JobApplicationCard
 import com.oliver.siloker.presentation.ui.theme.AppTypography
+import com.oliver.siloker.rx.R
 
 @Composable
 fun JobApplicationListScreen(

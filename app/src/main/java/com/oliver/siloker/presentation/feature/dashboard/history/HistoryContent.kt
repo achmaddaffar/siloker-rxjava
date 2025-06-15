@@ -36,12 +36,12 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.oliver.siloker.R
-import com.oliver.siloker.presentation.component.LoadingDialog
 import com.oliver.siloker.presentation.component.JobAdCard
 import com.oliver.siloker.presentation.component.JobApplicationCard
+import com.oliver.siloker.presentation.component.LoadingDialog
 import com.oliver.siloker.presentation.ui.theme.AppTypography
 import com.oliver.siloker.presentation.util.ErrorMessageUtil.parseNetworkError
+import com.oliver.siloker.rx.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

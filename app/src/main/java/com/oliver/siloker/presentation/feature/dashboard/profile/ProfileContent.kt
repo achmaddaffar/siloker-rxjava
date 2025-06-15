@@ -35,12 +35,12 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.oliver.siloker.R
 import com.oliver.siloker.presentation.component.LoadingDialog
 import com.oliver.siloker.presentation.feature.dashboard.component.ProfileEmployerSection
 import com.oliver.siloker.presentation.feature.dashboard.component.ProfileJobSeekerSection
 import com.oliver.siloker.presentation.feature.dashboard.component.ProfileTopSection
 import com.oliver.siloker.presentation.util.ErrorMessageUtil.parseNetworkError
+import com.oliver.siloker.rx.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -58,14 +58,14 @@ class JobApplicantsViewModel @Inject constructor(
     fun getJobDetail() {
         jobRepository
             .getJobDetail(jobId)
-            .onStart { _state.update { it.copy(isLoading = true) } }
-            .onEach { result ->
-                result
-                    .onSuccess { response -> _state.update { it.copy(jobDetail = response) } }
-                    .onError { _event.emit(JobApplicantsEvent.Error(it)) }
-            }
-            .onCompletion { _state.update { it.copy(isLoading = false, isRefreshing = false) } }
-            .launchIn(viewModelScope)
+//            .onStart { _state.update { it.copy(isLoading = true) } }
+//            .onEach { result ->
+//                result
+//                    .onSuccess { response -> _state.update { it.copy(jobDetail = response) } }
+//                    .onError { _event.emit(JobApplicantsEvent.Error(it)) }
+//            }
+//            .onCompletion { _state.update { it.copy(isLoading = false, isRefreshing = false) } }
+//            .launchIn(viewModelScope)
     }
 
     fun downloadCv(cvUrl: String) {

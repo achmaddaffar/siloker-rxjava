@@ -24,11 +24,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import com.oliver.siloker.R
 import com.oliver.siloker.presentation.feature.dashboard.component.SiLokerBottomNavBar
 import com.oliver.siloker.presentation.feature.dashboard.history.HistoryContent
 import com.oliver.siloker.presentation.feature.dashboard.home.HomeContent
 import com.oliver.siloker.presentation.feature.dashboard.profile.ProfileContent
+import com.oliver.siloker.rx.R
 
 @Composable
 fun DashboardScreen(

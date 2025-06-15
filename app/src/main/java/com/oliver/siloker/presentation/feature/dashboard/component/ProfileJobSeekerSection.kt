@@ -18,8 +18,8 @@ import androidx.compose.ui.text.style.TextIndent
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.oliver.siloker.R
 import com.oliver.siloker.presentation.ui.theme.AppTypography
+import com.oliver.siloker.rx.R
 
 @Composable
 fun ProfileJobSeekerSection(

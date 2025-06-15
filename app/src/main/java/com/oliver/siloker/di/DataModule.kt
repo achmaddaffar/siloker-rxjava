@@ -1,9 +1,9 @@
 package com.oliver.siloker.di
 
 import android.content.Context
-import com.oliver.siloker.BuildConfig
 import com.oliver.siloker.data.network.interceptor.AuthorizationInterceptor
 import com.oliver.siloker.data.pref.SiLokerPreference
+import com.oliver.siloker.rx.BuildConfig
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -12,6 +12,7 @@ import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
+import retrofit2.adapter.rxjava3.RxJava3CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
@@ -54,6 +55,7 @@ object DataModule {
     ): Retrofit = Retrofit.Builder()
         .client(okHttpClient)
         .addConverterFactory(GsonConverterFactory.create())
+        .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
         .baseUrl(BuildConfig.BASE_URL + "api/v1/")
         .build()
 }

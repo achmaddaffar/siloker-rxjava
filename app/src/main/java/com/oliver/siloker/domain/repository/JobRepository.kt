@@ -10,6 +10,8 @@ import com.oliver.siloker.domain.model.response.GetLatestJobResponse
 import com.oliver.siloker.domain.model.response.JobAdResponseItem
 import com.oliver.siloker.domain.model.response.JobDetailResponse
 import com.oliver.siloker.domain.util.Result
+import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.core.Single
 import kotlinx.coroutines.flow.Flow
 
 interface JobRepository {
@@ -17,13 +19,13 @@ interface JobRepository {
     fun getJobs(
         query: String,
         isOwner: Boolean = false
-    ): Flow<PagingData<JobAdResponseItem>>
+    ): Observable<PagingData<JobAdResponseItem>>
 
     fun getLatestJobs(): Flow<Result<GetLatestJobResponse, NetworkError>>
 
     fun getJobDetail(
         jobId: Long
-    ): Flow<Result<JobDetailResponse, NetworkError>>
+    ): Observable<Result<JobDetailResponse, NetworkError>>
 
     fun postJob(
         uri: Uri,
@@ -34,7 +36,7 @@ interface JobRepository {
     fun applyJob(
         jobId: Long,
         cv: Uri
-    ): Flow<Result<BaseResponse<Boolean>, NetworkError>>
+    ): Single<Result<BaseResponse<Boolean>, NetworkError>>
 
     fun getApplicants(
         jobId: Long?

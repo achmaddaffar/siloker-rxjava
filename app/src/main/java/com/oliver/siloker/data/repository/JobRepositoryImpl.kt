@@ -5,17 +5,20 @@ import android.net.Uri
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
+import androidx.paging.rxjava3.observable
 import com.oliver.siloker.data.mapper.toApplicantsLatestDomain
 import com.oliver.siloker.data.mapper.toDomain
 import com.oliver.siloker.data.mapper.toJobDetailDomain
 import com.oliver.siloker.data.mapper.toJobLatestDomain
 import com.oliver.siloker.data.network.model.response.BaseResponse
+import com.oliver.siloker.data.network.model.response.JobDetailResponseDto
 import com.oliver.siloker.data.network.paging.GetApplicantsPagingSource
 import com.oliver.siloker.data.network.paging.GetJobPagingSource
 import com.oliver.siloker.data.network.service.JobService
 import com.oliver.siloker.data.pref.SiLokerPreference
 import com.oliver.siloker.data.util.DownloadUtil
 import com.oliver.siloker.data.util.getResponse
+import com.oliver.siloker.data.util.getResponseRaw
 import com.oliver.siloker.domain.error.NetworkError
 import com.oliver.siloker.domain.model.response.ApplicantsResponseItem
 import com.oliver.siloker.domain.model.response.GetLatestApplicationResponse
@@ -28,6 +31,9 @@ import com.oliver.siloker.domain.util.Result
 import com.oliver.siloker.domain.util.asEmptyDataResult
 import com.oliver.siloker.domain.util.map
 import com.oliver.siloker.domain.util.onSuccess
+import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.core.Single
+import io.reactivex.rxjava3.schedulers.Schedulers
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -46,7 +52,7 @@ class JobRepositoryImpl(
     override fun getJobs(
         query: String,
         isOwner: Boolean
-    ): Flow<PagingData<JobAdResponseItem>> = Pager(
+    ): Observable<PagingData<JobAdResponseItem>> = Pager(
         PagingConfig(GetJobPagingSource.PAGE_SIZE)
     ) {
         GetJobPagingSource { page, size ->
@@ -57,9 +63,7 @@ class JobRepositoryImpl(
                 size = size
             )
         }
-    }
-        .flow
-        .flowOn(Dispatchers.IO)
+    }.observable
 
     override fun getLatestJobs(): Flow<Result<GetLatestJobResponse, NetworkError>> =
         flow {
@@ -74,13 +78,27 @@ class JobRepositoryImpl(
             emit(response.map { it.data.toJobLatestDomain() })
         }
 
+//    override fun getJobDetail(
+//        jobId: Long
+//    ): Flow<Result<JobDetailResponse, NetworkError>> =
+//        flow {
+//            val response = getResponse { jobService.getJobDetail(jobId) }
+//            emit(response.map { it.data.toJobDetailDomain() })
+//        }
+
     override fun getJobDetail(
         jobId: Long
-    ): Flow<Result<JobDetailResponse, NetworkError>> =
-        flow {
-            val response = getResponse { jobService.getJobDetail(jobId) }
-            emit(response.map { it.data.toJobDetailDomain() })
-        }
+    ): Observable<Result<JobDetailResponse, NetworkError>> {
+        return jobService.getJobDetail(jobId)
+            .map { response ->
+                getResponseRaw(response) // your own function
+            }
+            .map { result ->
+                result.map { it.data.toJobDetailDomain() } // domain mapping
+            }
+            .toObservable() // convert Single to Observable if needed by consumers
+            .subscribeOn(Schedulers.io())
+    }
 
     override fun postJob(
         uri: Uri,
@@ -106,11 +124,33 @@ class JobRepositoryImpl(
         emit(response)
     }.flowOn(Dispatchers.IO)
 
+//    override fun applyJob(
+//        jobId: Long,
+//        cv: Uri
+//    ): Flow<Result<BaseResponse<Boolean>, NetworkError>> =
+//        flow {
+//            val file = FileUtil.uriToFile(cv, application)
+//            val requestCvFile = file.asRequestBody("application/pdf".toMediaTypeOrNull())
+//            val cvMultipart = MultipartBody.Part.createFormData(
+//                "cv",
+//                file.name,
+//                requestCvFile
+//            )
+//
+//            val response = getResponse {
+//                jobService.applyJob(
+//                    jobId = jobId.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
+//                    cv = cvMultipart
+//                )
+//            }
+//            emit(response)
+//        }.flowOn(Dispatchers.IO)
+
     override fun applyJob(
         jobId: Long,
         cv: Uri
-    ): Flow<Result<BaseResponse<Boolean>, NetworkError>> =
-        flow {
+    ): Single<Result<BaseResponse<Boolean>, NetworkError>> {
+        return Single.fromCallable {
             val file = FileUtil.uriToFile(cv, application)
             val requestCvFile = file.asRequestBody("application/pdf".toMediaTypeOrNull())
             val cvMultipart = MultipartBody.Part.createFormData(
@@ -118,15 +158,16 @@ class JobRepositoryImpl(
                 file.name,
                 requestCvFile
             )
+            jobId.toString().toRequestBody("text/plain".toMediaTypeOrNull()) to cvMultipart
+        }.flatMap { (jobIdBody, cvMultipart) ->
+            jobService.applyJob(
+                jobId = jobIdBody,
+                cv = cvMultipart
+            )
+        }.map { response -> getResponseRaw(response) }
+            .subscribeOn(Schedulers.io())
+    }
 
-            val response = getResponse {
-                jobService.applyJob(
-                    jobId = jobId.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
-                    cv = cvMultipart
-                )
-            }
-            emit(response)
-        }.flowOn(Dispatchers.IO)
 
     override fun getApplicants(
         jobId: Long?

@@ -11,11 +11,11 @@ plugins {
 }
 
 android {
-    namespace = "com.oliver.siloker"
+    namespace = "com.oliver.siloker.rx"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.oliver.siloker"
+        applicationId = "com.oliver.siloker.rx"
         minSdk = 26
         targetSdk = 35
         versionCode = 1
@@ -111,4 +111,19 @@ dependencies {
 
     // Google Font
     implementation(libs.androidx.ui.text.google.fonts)
+
+    // RxJava
+    implementation(libs.rxjava)
+
+    // Optional: For Android-specific threading (Schedulers.mainThread())
+    implementation(libs.rxandroid)
+
+    // Retrofit adapter for RxJava 3
+    implementation(libs.adapter.rxjava3)
+
+    // Paging - RxJava
+    implementation(libs.androidx.paging.rxjava3)
+
+    // Coroutines - Rx
+    implementation(libs.kotlinx.coroutines.rx3)
 }

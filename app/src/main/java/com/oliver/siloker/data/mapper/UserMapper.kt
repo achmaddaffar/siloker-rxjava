@@ -1,6 +1,5 @@
 package com.oliver.siloker.data.mapper
 
-import com.oliver.siloker.BuildConfig
 import com.oliver.siloker.data.network.model.request.UpdateEmployerRequestDto
 import com.oliver.siloker.data.network.model.request.UpdateJobSeekerRequestDto
 import com.oliver.siloker.data.network.model.response.EmployerDto
@@ -11,6 +10,7 @@ import com.oliver.siloker.domain.model.request.UpdateJobSeekerRequest
 import com.oliver.siloker.domain.model.response.Employer
 import com.oliver.siloker.domain.model.response.GetProfileResponse
 import com.oliver.siloker.domain.model.response.JobSeeker
+import com.oliver.siloker.rx.BuildConfig
 
 fun JobSeekerDto.toJobSeekerDomain() = JobSeeker(
     resumeUrl = this.resumeUrl ?: "",

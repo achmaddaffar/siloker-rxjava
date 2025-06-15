@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">SiLoker</string>
+    <string name="app_name">SiLoker - RxJava</string>
     <string name="login">Login</string>
     <string name="let_s_go_get_a_job">Let\'s go get a job!</string>
     <string name="don_t_have_an_account_yet">Don\'t have an account yet?</string>

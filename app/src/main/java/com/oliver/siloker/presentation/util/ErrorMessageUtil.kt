@@ -1,8 +1,8 @@
 package com.oliver.siloker.presentation.util
 
 import android.content.Context
-import com.oliver.siloker.R
 import com.oliver.siloker.domain.error.NetworkError
+import com.oliver.siloker.rx.R
 
 object ErrorMessageUtil {
 

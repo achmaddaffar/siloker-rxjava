@@ -3,22 +3,17 @@ package com.oliver.siloker.presentation.feature.job.detail
 import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import com.oliver.siloker.domain.error.NetworkError
 import com.oliver.siloker.domain.repository.JobRepository
 import com.oliver.siloker.domain.util.onError
 import com.oliver.siloker.domain.util.onSuccess
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.disposables.CompositeDisposable
+import io.reactivex.rxjava3.schedulers.Schedulers
+import io.reactivex.rxjava3.subjects.BehaviorSubject
+import io.reactivex.rxjava3.subjects.PublishSubject
 import javax.inject.Inject
 
 @HiltViewModel
@@ -28,56 +23,72 @@ class JobDetailViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val jobId: Long = checkNotNull(savedStateHandle["jobId"])
+    private val disposables = CompositeDisposable()
 
-    private val _state = MutableStateFlow(JobDetailState())
-    val state = _state
-        .onStart { getJobDetail() }
-        .stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(15000L),
-            JobDetailState()
-        )
+    private val _state = BehaviorSubject.createDefault(JobDetailState())
+    val state: Observable<JobDetailState> = _state.hide()
 
-    private val _event = MutableSharedFlow<JobDetailEvent>()
-    val event = _event.asSharedFlow()
+    private val _event = PublishSubject.create<JobDetailEvent>()
+    val event: Observable<JobDetailEvent> = _event.hide()
 
-    val isApplyEnabled = _state
-        .map {
-            it.jobDetail.isApplicable && !it.isLoading && it.cvUri != Uri.EMPTY
-        }
-        .stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(15000L),
-            false
-        )
+    val isApplyEnabled: Observable<Boolean> = _state.map {
+        it.jobDetail.isApplicable && !it.isLoading && it.cvUri != Uri.EMPTY
+    }
+
+    init {
+        getJobDetail()
+    }
 
     fun setCvUri(value: Uri) {
-        _state.update { it.copy(cvUri = value) }
+        _state.onNext(_state.value!!.copy(cvUri = value))
     }
 
     fun getJobDetail() {
-        jobRepository
+        _state.onNext(_state.value!!.copy(isLoading = true))
+
+        val disposable = jobRepository
             .getJobDetail(jobId)
-            .onStart { _state.update { it.copy(isLoading = true) } }
-            .onEach { result ->
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({ result ->
                 result
-                    .onSuccess { response -> _state.update { it.copy(jobDetail = response) } }
-                    .onError { _event.emit(JobDetailEvent.Error(it)) }
-            }
-            .onCompletion { _state.update { it.copy(isLoading = false) } }
-            .launchIn(viewModelScope)
+                    .onSuccess {
+                        _state.onNext(_state.value!!.copy(jobDetail = it, isLoading = false))
+                    }
+                    .onError {
+                        _state.onNext(_state.value!!.copy(isLoading = false))
+                        _event.onNext(JobDetailEvent.Error(it))
+                    }
+            }, {
+                _state.onNext(_state.value!!.copy(isLoading = false))
+                _event.onNext(JobDetailEvent.Error(NetworkError.UNKNOWN))
+            })
+
+        disposables.add(disposable)
     }
 
     fun applyJob() {
-        jobRepository
-            .applyJob(jobId, _state.value.cvUri)
-            .onStart { _state.update { it.copy(isLoading = true) } }
-            .onEach { result ->
+        _state.onNext(_state.value!!.copy(isLoading = true))
+
+        val disposable = jobRepository
+            .applyJob(jobId, _state.value!!.cvUri)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({ result ->
+                _state.onNext(_state.value!!.copy(isLoading = false))
                 result
-                    .onSuccess { _event.emit(JobDetailEvent.Success) }
-                    .onError { _event.emit(JobDetailEvent.Error(it)) }
-            }
-            .onCompletion { _state.update { it.copy(isLoading = false) } }
-            .launchIn(viewModelScope)
+                    .onSuccess { _event.onNext(JobDetailEvent.Success) }
+                    .onError { _event.onNext(JobDetailEvent.Error(it)) }
+            }, {
+                _state.onNext(_state.value!!.copy(isLoading = false))
+                _event.onNext(JobDetailEvent.Error(NetworkError.UNKNOWN))
+            })
+
+        disposables.add(disposable)
+    }
+
+    override fun onCleared() {
+        disposables.clear()
+        super.onCleared()
     }
 }

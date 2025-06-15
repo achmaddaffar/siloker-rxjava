@@ -1,6 +1,7 @@
 package com.oliver.siloker.presentation.feature.job.detail
 
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -27,11 +28,10 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -45,9 +45,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.SubcomposeAsyncImage
-import com.oliver.siloker.R
 import com.oliver.siloker.domain.util.DateUtil
 import com.oliver.siloker.domain.util.FileUtil
 import com.oliver.siloker.presentation.component.LoadingDialog
@@ -55,6 +53,9 @@ import com.oliver.siloker.presentation.component.ResultDialog
 import com.oliver.siloker.presentation.component.dottedBorder
 import com.oliver.siloker.presentation.ui.theme.AppTypography
 import com.oliver.siloker.presentation.util.ErrorMessageUtil.parseNetworkError
+import com.oliver.siloker.presentation.util.rememberRxState
+import com.oliver.siloker.rx.R
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 
 @Composable
 fun JobDetailScreen(
@@ -70,26 +71,31 @@ fun JobDetailScreen(
         it?.let { viewModel.setCvUri(it) }
     }
 
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    val isApplyEnabled by viewModel.isApplyEnabled.collectAsStateWithLifecycle()
+    val state by rememberRxState(viewModel.state, JobDetailState())
+    val isApplyEnabled by rememberRxState(viewModel.isApplyEnabled, false)
     var isUploadSectionVisible by rememberSaveable { mutableStateOf(false) }
     var isSuccessPopUpVisible by rememberSaveable { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
-        viewModel.event.collect { event ->
-            when (event) {
-                is JobDetailEvent.Error -> {
-                    snackbarHostState.showSnackbar(
-                        message = event.error.parseNetworkError(context),
-                        duration = SnackbarDuration.Short
-                    )
-                }
+    DisposableEffect(Unit) {
+        val disposable = viewModel.event
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe { event ->
+                when (event) {
+                    is JobDetailEvent.Error -> {
+                        Toast.makeText(
+                            context,
+                            event.error.parseNetworkError(context),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
 
-                JobDetailEvent.Success -> {
-                    isSuccessPopUpVisible = true
+                    JobDetailEvent.Success -> {
+                        isSuccessPopUpVisible = true
+                    }
                 }
             }
-        }
+
+        onDispose { disposable.dispose() }
     }
 
     if (state.isLoading) LoadingDialog()

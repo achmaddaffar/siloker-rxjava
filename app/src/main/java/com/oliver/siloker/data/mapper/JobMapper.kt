@@ -1,6 +1,5 @@
 package com.oliver.siloker.data.mapper
 
-import com.oliver.siloker.BuildConfig
 import com.oliver.siloker.data.network.model.response.GetApplicantsResponseDto
 import com.oliver.siloker.data.network.model.response.GetApplicantsResponseItemDto
 import com.oliver.siloker.data.network.model.response.JobAdResponseDto
@@ -10,6 +9,7 @@ import com.oliver.siloker.domain.model.response.GetLatestApplicationResponse
 import com.oliver.siloker.domain.model.response.GetLatestJobResponse
 import com.oliver.siloker.domain.model.response.JobAdResponseItem
 import com.oliver.siloker.domain.model.response.JobDetailResponse
+import com.oliver.siloker.rx.BuildConfig
 
 fun JobAdResponseDto.toJobAdDomain() = this.content?.map {
     JobAdResponseItem(

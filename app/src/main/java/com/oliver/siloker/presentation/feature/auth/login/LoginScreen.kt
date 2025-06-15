@@ -45,9 +45,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.compose.dropUnlessResumed
-import com.oliver.siloker.R
 import com.oliver.siloker.presentation.component.FinishActivityValidation
 import com.oliver.siloker.presentation.util.ErrorMessageUtil.parseNetworkError
+import com.oliver.siloker.rx.R
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable

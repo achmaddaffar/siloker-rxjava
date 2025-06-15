@@ -44,10 +44,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.SubcomposeAsyncImage
-import com.oliver.siloker.R
 import com.oliver.siloker.presentation.component.LoadingDialog
 import com.oliver.siloker.presentation.ui.theme.AppTypography
 import com.oliver.siloker.presentation.util.ErrorMessageUtil.parseNetworkError
+import com.oliver.siloker.rx.R
 
 @Composable
 fun PostJobScreen(

@@ -5,6 +5,7 @@ import com.oliver.siloker.data.network.model.response.GetApplicantsResponseDto
 import com.oliver.siloker.data.network.model.response.GetApplicantsResponseItemDto
 import com.oliver.siloker.data.network.model.response.JobAdResponseDto
 import com.oliver.siloker.data.network.model.response.JobDetailResponseDto
+import io.reactivex.rxjava3.core.Single
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
@@ -28,9 +29,9 @@ interface JobService {
     ): Response<BaseResponse<JobAdResponseDto>>
 
     @GET("job/{job_id}")
-    suspend fun getJobDetail(
+    fun getJobDetail(
         @Path("job_id") jobId: Long
-    ): Response<BaseResponse<JobDetailResponseDto>>
+    ): Single<Response<BaseResponse<JobDetailResponseDto>>>
 
     @Multipart
     @POST("job/create")
@@ -42,10 +43,10 @@ interface JobService {
 
     @Multipart
     @POST("job/apply")
-    suspend fun applyJob(
+    fun applyJob(
         @Part("job_id") jobId: RequestBody,
         @Part cv: MultipartBody.Part
-    ): Response<BaseResponse<Boolean>>
+    ): Single<Response<BaseResponse<Boolean>>>
 
     @GET("job/applicants")
     suspend fun getApplicants(

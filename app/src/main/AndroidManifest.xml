@@ -7,7 +7,7 @@
         android:maxSdkVersion="28" />
 
     <application
-        android:name=".SiLokerApplication"
+        android:name="com.oliver.siloker.SiLokerApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -19,7 +19,7 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
-            android:name=".presentation.MainActivity"
+            android:name="com.oliver.siloker.presentation.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.SiLoker">

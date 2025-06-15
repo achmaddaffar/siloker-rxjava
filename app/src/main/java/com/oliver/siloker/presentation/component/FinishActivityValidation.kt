@@ -10,7 +10,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
-import com.oliver.siloker.R
+import com.oliver.siloker.rx.R
 import kotlinx.coroutines.launch
 
 @Composable

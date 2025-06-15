@@ -28,12 +28,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.oliver.siloker.R
 import com.oliver.siloker.presentation.component.LoadingDialog
 import com.oliver.siloker.presentation.component.ResultDialog
 import com.oliver.siloker.presentation.feature.dashboard.component.ExperienceListSection
 import com.oliver.siloker.presentation.feature.dashboard.component.SkillListSection
 import com.oliver.siloker.presentation.util.ErrorMessageUtil.parseNetworkError
+import com.oliver.siloker.rx.R
 
 @Composable
 fun EditJobSeekerScreen(

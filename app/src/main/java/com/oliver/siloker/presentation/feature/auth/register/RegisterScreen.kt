@@ -54,12 +54,12 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.SubcomposeAsyncImage
-import com.oliver.siloker.R
 import com.oliver.siloker.domain.error.NetworkError
 import com.oliver.siloker.domain.error.auth.RegisterError
 import com.oliver.siloker.presentation.component.LoadingDialog
 import com.oliver.siloker.presentation.component.ResultDialog
 import com.oliver.siloker.presentation.util.ErrorMessageUtil.parseNetworkError
+import com.oliver.siloker.rx.R
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
