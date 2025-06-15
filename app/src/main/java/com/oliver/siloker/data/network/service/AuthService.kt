@@ -3,6 +3,7 @@ package com.oliver.siloker.data.network.service
 import com.oliver.siloker.data.network.model.request.LoginRequestDto
 import com.oliver.siloker.data.network.model.response.BaseResponse
 import com.oliver.siloker.data.network.model.response.LoginResponseDto
+import io.reactivex.rxjava3.core.Single
 import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.Body
@@ -13,13 +14,13 @@ import retrofit2.http.Part
 interface AuthService {
 
     @POST("auth/login")
-    suspend fun login(
+    fun login(
         @Body request: LoginRequestDto
-    ): Response<BaseResponse<LoginResponseDto>>
+    ): Single<Response<BaseResponse<LoginResponseDto>>>
 
     @Multipart
     @POST("auth/register")
-    suspend fun register(
+    fun register(
         @Part parts: List<MultipartBody.Part>
-    ): Response<BaseResponse<Boolean>>
+    ): Single<Response<BaseResponse<Boolean>>>
 }

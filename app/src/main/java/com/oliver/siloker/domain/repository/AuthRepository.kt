@@ -5,17 +5,17 @@ import com.oliver.siloker.domain.error.NetworkError
 import com.oliver.siloker.domain.model.request.LoginRequest
 import com.oliver.siloker.domain.model.request.RegisterRequest
 import com.oliver.siloker.domain.util.Result
-import kotlinx.coroutines.flow.Flow
+import io.reactivex.rxjava3.core.Single
 
 interface AuthRepository {
 
     fun login(
         request: LoginRequest
-    ): Flow<Result<Unit, NetworkError>>
+    ): Single<Result<Unit, NetworkError>>
 
     fun register(
         request: RegisterRequest
-    ): Flow<Result<BaseResponse<Boolean>, NetworkError>>
+    ): Single<Result<BaseResponse<Boolean>, NetworkError>>
 
     fun getToken(): String?
 

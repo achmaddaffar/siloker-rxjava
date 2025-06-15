@@ -32,9 +32,11 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rxjava3.subscribeAsState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -52,7 +54,6 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.SubcomposeAsyncImage
 import com.oliver.siloker.domain.error.NetworkError
 import com.oliver.siloker.domain.error.auth.RegisterError
@@ -60,7 +61,8 @@ import com.oliver.siloker.presentation.component.LoadingDialog
 import com.oliver.siloker.presentation.component.ResultDialog
 import com.oliver.siloker.presentation.util.ErrorMessageUtil.parseNetworkError
 import com.oliver.siloker.rx.R
-import kotlinx.coroutines.flow.collectLatest
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import kotlinx.coroutines.launch
 
 @Composable
 fun RegisterScreen(
@@ -71,6 +73,7 @@ fun RegisterScreen(
     val viewModel = hiltViewModel<RegisterViewModel>()
     val focusManager = LocalFocusManager.current
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) {
@@ -82,31 +85,41 @@ fun RegisterScreen(
     var isSuccessPopUpVisible by rememberSaveable { mutableStateOf(false) }
     var isPasswordVisible by rememberSaveable { mutableStateOf(false) }
     var isRepeatPasswordVisible by rememberSaveable { mutableStateOf(false) }
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    val isRegisterEnabled by viewModel.isRegisterEnabled.collectAsStateWithLifecycle()
+    val state by viewModel.state.subscribeAsState(RegisterState())
+    val isRegisterEnabled by viewModel.isRegisterEnabled.subscribeAsState(false)
 
-    LaunchedEffect(Unit) {
-        viewModel.event.collectLatest { event ->
-            when (event) {
-                is RegisterEvent.Error -> {
-                    if (event.error is RegisterError)
-                        snackbarHostState.showSnackbar(
-                            message = when (event.error) {
-                                RegisterError.PASSWORD_NOT_SAME -> context.getString(R.string.passwords_are_not_the_same)
-                                RegisterError.TOO_SHORT -> context.getString(R.string.password_is_too_short)
-                            },
-                            duration = SnackbarDuration.Short
-                        )
-                    else
-                        snackbarHostState.showSnackbar(
-                            message = (event.error as NetworkError).parseNetworkError(context),
-                            duration = SnackbarDuration.Short
-                        )
+    DisposableEffect(Unit) {
+        val disposable = viewModel.event
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe { event ->
+                when (event) {
+                    is RegisterEvent.Error -> {
+                        if (event.error is RegisterError)
+                            scope.launch {
+                                snackbarHostState.showSnackbar(
+                                    message = when (event.error) {
+                                        RegisterError.PASSWORD_NOT_SAME -> context.getString(R.string.passwords_are_not_the_same)
+                                        RegisterError.TOO_SHORT -> context.getString(R.string.password_is_too_short)
+                                    },
+                                    duration = SnackbarDuration.Short
+                                )
+                            }
+                        else
+                            scope.launch {
+                                snackbarHostState.showSnackbar(
+                                    message = (event.error as NetworkError).parseNetworkError(
+                                        context
+                                    ),
+                                    duration = SnackbarDuration.Short
+                                )
+                            }
+                    }
+
+                    RegisterEvent.Success -> isSuccessPopUpVisible = true
                 }
-
-                RegisterEvent.Success -> isSuccessPopUpVisible = true
             }
-        }
+
+        onDispose { disposable.dispose() }
     }
 
     if (state.isLoading) LoadingDialog()

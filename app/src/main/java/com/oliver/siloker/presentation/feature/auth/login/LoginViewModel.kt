@@ -1,21 +1,17 @@
 package com.oliver.siloker.presentation.feature.auth.login
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import com.oliver.siloker.domain.error.NetworkError
 import com.oliver.siloker.domain.model.request.LoginRequest
 import com.oliver.siloker.domain.repository.AuthRepository
 import com.oliver.siloker.domain.util.onError
 import com.oliver.siloker.domain.util.onSuccess
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.update
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import io.reactivex.rxjava3.disposables.CompositeDisposable
+import io.reactivex.rxjava3.schedulers.Schedulers
+import io.reactivex.rxjava3.subjects.BehaviorSubject
+import io.reactivex.rxjava3.subjects.PublishSubject
 import javax.inject.Inject
 
 @HiltViewModel
@@ -23,43 +19,52 @@ class LoginViewModel @Inject constructor(
     private val authRepository: AuthRepository
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(LoginState())
-    val state = _state.asStateFlow()
+    private val _state = BehaviorSubject.createDefault(LoginState())
+    val state = _state.hide()
 
-    private val _event = MutableSharedFlow<LoginEvent>()
-    val event = _event.asSharedFlow()
+    private val _event = PublishSubject.create<LoginEvent>()
+    val event = _event.hide()
+
+    private val compositeDisposable = CompositeDisposable()
 
     fun setPhoneNumber(
         value: String
     ) {
-        _state.value = _state.value.copy(
-            phoneNumber = value
-        )
+        _state.onNext(_state.value!!.copy(phoneNumber = value))
     }
 
     fun setPassword(
         value: String
     ) {
-        _state.value = _state.value.copy(
-            password = value
-        )
+        _state.onNext(_state.value!!.copy(password = value))
     }
 
     fun login() {
+        _state.onNext(_state.value!!.copy(isLoading = true))
         val request = LoginRequest(
-            phoneNumber = _state.value.phoneNumber,
-            password = _state.value.password
+            phoneNumber = _state.value?.phoneNumber ?: "",
+            password = _state.value?.password ?: ""
         )
 
-        authRepository
+        val disposable = authRepository
             .login(request)
-            .onStart { _state.update { it.copy(isLoading = true) } }
-            .onEach { result ->
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({ result ->
+                _state.onNext(_state.value!!.copy(isLoading = false))
                 result
-                    .onSuccess { _event.emit(LoginEvent.Success) }
-                    .onError { _event.emit(LoginEvent.Error(it)) }
-            }
-            .onCompletion { _state.update { it.copy(isLoading = false) } }
-            .launchIn(viewModelScope)
+                    .onSuccess { _event.onNext(LoginEvent.Success) }
+                    .onError { _event.onNext(LoginEvent.Error(it)) }
+            }, {
+                _state.onNext(_state.value!!.copy(isLoading = false))
+                _event.onNext(LoginEvent.Error(NetworkError.UNKNOWN))
+            })
+
+        compositeDisposable.add(disposable)
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        compositeDisposable.clear()
     }
 }
