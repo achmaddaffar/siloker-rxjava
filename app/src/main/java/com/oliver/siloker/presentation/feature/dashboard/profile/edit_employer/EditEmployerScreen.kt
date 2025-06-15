@@ -16,9 +16,11 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rxjava3.subscribeAsState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -30,11 +32,12 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.oliver.siloker.presentation.component.LoadingDialog
 import com.oliver.siloker.presentation.component.ResultDialog
 import com.oliver.siloker.presentation.util.ErrorMessageUtil.parseNetworkError
 import com.oliver.siloker.rx.R
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import kotlinx.coroutines.launch
 
 @Composable
 fun EditEmployerScreen(
@@ -44,26 +47,33 @@ fun EditEmployerScreen(
 ) {
     val viewModel = hiltViewModel<EditEmployerViewModel>()
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
 
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val state by viewModel.state.subscribeAsState(EditEmployerState())
     var isSuccessPopUpVisible by rememberSaveable { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
-        viewModel.event.collect { event ->
-            when(event) {
-                is EditEmployerEvent.Error -> {
-                    snackbarHostState.showSnackbar(
-                        message = event.error.parseNetworkError(context),
-                        duration = SnackbarDuration.Short
-                    )
-                }
+    DisposableEffect(Unit) {
+        val disposable = viewModel.event
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe { event ->
+                when (event) {
+                    is EditEmployerEvent.Error -> {
+                        scope.launch {
+                            snackbarHostState.showSnackbar(
+                                message = event.error.parseNetworkError(context),
+                                duration = SnackbarDuration.Short
+                            )
+                        }
+                    }
 
-                EditEmployerEvent.Success -> {
-                    isSuccessPopUpVisible = true
+                    EditEmployerEvent.Success -> {
+                        isSuccessPopUpVisible = true
+                    }
                 }
             }
-        }
+
+        onDispose { disposable.dispose() }
     }
 
     if (state.isLoading) LoadingDialog()

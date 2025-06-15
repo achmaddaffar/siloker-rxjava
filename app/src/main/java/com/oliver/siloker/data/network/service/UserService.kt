@@ -4,6 +4,7 @@ import com.oliver.siloker.data.network.model.request.UpdateEmployerRequestDto
 import com.oliver.siloker.data.network.model.request.UpdateJobSeekerRequestDto
 import com.oliver.siloker.data.network.model.response.BaseResponse
 import com.oliver.siloker.data.network.model.response.GetProfileResponseDto
+import io.reactivex.rxjava3.core.Single
 import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.Body
@@ -15,21 +16,21 @@ import retrofit2.http.Part
 interface UserService {
 
     @GET("user")
-    suspend fun getProfile(): Response<BaseResponse<GetProfileResponseDto>>
+    fun getProfile(): Single<Response<BaseResponse<GetProfileResponseDto>>>
 
     @Multipart
     @POST("user/update/profile_picture")
-    suspend fun updateProfilePicture(
+    fun updateProfilePicture(
         @Part part: MultipartBody.Part
-    ): Response<BaseResponse<Boolean>>
+    ): Single<Response<BaseResponse<Boolean>>>
 
     @POST("user/register-job-seeker")
-    suspend fun updateJobSeeker(
+    fun updateJobSeeker(
         @Body request: UpdateJobSeekerRequestDto
-    ): Response<BaseResponse<Boolean>>
+    ): Single<Response<BaseResponse<Boolean>>>
 
     @POST("user/register-employer")
-    suspend fun updateEmployer(
+    fun updateEmployer(
         @Body request: UpdateEmployerRequestDto
-    ): Response<BaseResponse<Boolean>>
+    ): Single<Response<BaseResponse<Boolean>>>
 }

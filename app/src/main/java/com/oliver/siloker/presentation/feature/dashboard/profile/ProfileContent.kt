@@ -25,8 +25,10 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rxjava3.subscribeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -34,13 +36,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.oliver.siloker.presentation.component.LoadingDialog
 import com.oliver.siloker.presentation.feature.dashboard.component.ProfileEmployerSection
 import com.oliver.siloker.presentation.feature.dashboard.component.ProfileJobSeekerSection
 import com.oliver.siloker.presentation.feature.dashboard.component.ProfileTopSection
 import com.oliver.siloker.presentation.util.ErrorMessageUtil.parseNetworkError
 import com.oliver.siloker.rx.R
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,6 +56,7 @@ fun ProfileContent(
 ) {
     val viewModel = hiltViewModel<ProfileViewModel>()
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) {
@@ -61,21 +65,28 @@ fun ProfileContent(
         }
     }
 
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val state by viewModel.state.subscribeAsState(ProfileState())
 
-    LaunchedEffect(Unit) {
-        viewModel.event.collect { event ->
-            when (event) {
-                is ProfileEvent.Error -> {
-                    snackbarHostState.showSnackbar(
-                        message = event.error.parseNetworkError(context),
-                        duration = SnackbarDuration.Short
-                    )
+    DisposableEffect(Unit) {
+        val disposable = viewModel.event
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe { event ->
+                when (event) {
+                    is ProfileEvent.Error -> {
+                        scope.launch {
+                            snackbarHostState.showSnackbar(
+                                message = event.error.parseNetworkError(context),
+                                duration = SnackbarDuration.Short
+                            )
+                        }
+                    }
+
+                    ProfileEvent.Success -> Unit
                 }
-
-                ProfileEvent.Success -> Unit
             }
-        }
+
+        onDispose { disposable.dispose() }
+
     }
 
     if (state.isLoading) LoadingDialog()
@@ -112,11 +123,12 @@ fun ProfileContent(
                     experiences = state.jobSeeker?.experiences ?: emptyList(),
                     onResumeUrlClick = {
                         val resumeUrl = state.jobSeeker?.resumeUrl ?: return@ProfileJobSeekerSection
-                        val formattedUrl = if (resumeUrl.startsWith("http://") || resumeUrl.startsWith("https://")) {
-                            resumeUrl
-                        } else {
-                            "http://$resumeUrl"
-                        }
+                        val formattedUrl =
+                            if (resumeUrl.startsWith("http://") || resumeUrl.startsWith("https://")) {
+                                resumeUrl
+                            } else {
+                                "http://$resumeUrl"
+                            }
                         val intent = Intent(
                             Intent.ACTION_VIEW,
                             formattedUrl.toUri()
@@ -147,12 +159,14 @@ fun ProfileContent(
                     companyName = state.employer?.companyName ?: "",
                     position = state.employer?.position ?: "",
                     onCompanyWebsiteClick = {
-                        val resumeUrl = state.employer?.companyWebsite ?: return@ProfileEmployerSection
-                        val formattedUrl = if (resumeUrl.startsWith("http://") || resumeUrl.startsWith("https://")) {
-                            resumeUrl
-                        } else {
-                            "http://$resumeUrl" // add scheme if missing
-                        }
+                        val resumeUrl =
+                            state.employer?.companyWebsite ?: return@ProfileEmployerSection
+                        val formattedUrl =
+                            if (resumeUrl.startsWith("http://") || resumeUrl.startsWith("https://")) {
+                                resumeUrl
+                            } else {
+                                "http://$resumeUrl" // add scheme if missing
+                            }
                         val intent = Intent(
                             Intent.ACTION_VIEW,
                             formattedUrl.toUri()

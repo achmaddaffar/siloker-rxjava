@@ -6,6 +6,7 @@ import com.oliver.siloker.domain.repository.JobRepository
 import com.oliver.siloker.domain.repository.UserRepository
 import com.oliver.siloker.domain.util.onError
 import com.oliver.siloker.domain.util.onSuccess
+import com.oliver.siloker.presentation.util.updateState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.disposables.CompositeDisposable
@@ -89,6 +90,7 @@ class HistoryViewModel @Inject constructor(
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({ result ->
+                _state.updateState { it.copy(isLoading = false) }
                 result
                     .onSuccess {
                         _state.onNext(

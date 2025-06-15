@@ -2,22 +2,18 @@ package com.oliver.siloker.presentation.feature.dashboard.profile
 
 import android.net.Uri
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import com.oliver.siloker.domain.error.NetworkError
 import com.oliver.siloker.domain.repository.AuthRepository
 import com.oliver.siloker.domain.repository.UserRepository
 import com.oliver.siloker.domain.util.onError
 import com.oliver.siloker.domain.util.onSuccess
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import io.reactivex.rxjava3.disposables.CompositeDisposable
+import io.reactivex.rxjava3.schedulers.Schedulers
+import io.reactivex.rxjava3.subjects.BehaviorSubject
+import io.reactivex.rxjava3.subjects.PublishSubject
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltViewModel
@@ -26,73 +22,83 @@ class ProfileViewModel @Inject constructor(
     private val userRepository: UserRepository
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(ProfileState())
+    private val _state = BehaviorSubject.createDefault(ProfileState())
     val state = _state
-        .onStart { getProfile() }
-        .stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(15000L),
-            ProfileState()
-        )
+        .doOnSubscribe {
+            if (_state.value == ProfileState()) {
+                getProfile()
+            }
+        }
+        .share()
+        .replay(1)
+        .refCount(15000L, TimeUnit.MILLISECONDS)
 
-    private val _event = MutableSharedFlow<ProfileEvent>()
-    val event = _event.asSharedFlow()
+    private val _event = PublishSubject.create<ProfileEvent>()
+    val event = _event.hide()
+
+    private val compositeDisposable = CompositeDisposable()
 
     fun setIsRefreshing(value: Boolean) {
-        _state.update { it.copy(isRefreshing = value) }
+        _state.onNext(_state.value!!.copy(isRefreshing = value))
     }
 
     fun getProfile() {
-        userRepository
+        _state.onNext(_state.value!!.copy(isLoading = true))
+
+        val disposable = userRepository
             .getProfile()
-            .onStart { _state.update { it.copy(isLoading = true) } }
-            .onEach { result ->
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({ result ->
+                _state.onNext(_state.value!!.copy(isLoading = false, isRefreshing = false))
                 result
                     .onSuccess { response ->
-                        _state.update {
-                            it.copy(
+                        _state.onNext(
+                            _state.value!!.copy(
                                 fullName = response.fullName,
                                 bio = response.bio,
                                 profilePictureUrl = response.profilePictureUrl,
                                 jobSeeker = response.jobSeeker,
                                 employer = response.employer
                             )
-                        }
+                        )
                     }
-                    .onError { _event.emit(ProfileEvent.Error(it)) }
-            }
-            .onCompletion {
-                _state.update {
-                    it.copy(
-                        isLoading = false,
-                        isRefreshing = false
-                    )
-                }
-            }
-            .launchIn(viewModelScope)
+                    .onError { _event.onNext(ProfileEvent.Error(it)) }
+            }, {
+                _state.onNext(_state.value!!.copy(isLoading = false, isRefreshing = false))
+                _event.onNext(ProfileEvent.Error(NetworkError.UNKNOWN))
+            })
+
+        compositeDisposable.add(disposable)
     }
 
     fun uploadProfilePicture(uri: Uri) {
-        userRepository
+        _state.onNext(_state.value!!.copy(isLoading = true))
+
+        val disposable = userRepository
             .uploadProfilePicture(uri)
-            .onStart { _state.update { it.copy(isLoading = true) } }
-            .onEach { result ->
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({ result ->
+                _state.onNext(_state.value!!.copy(isLoading = false, isRefreshing = false))
                 result
                     .onSuccess { getProfile() }
-                    .onError { _event.emit(ProfileEvent.Error(it)) }
-            }
-            .onCompletion {
-                _state.update {
-                    it.copy(
-                        isLoading = false,
-                        isRefreshing = false
-                    )
-                }
-            }
-            .launchIn(viewModelScope)
+                    .onError { _event.onNext(ProfileEvent.Error(it)) }
+            }, {
+                _state.onNext(_state.value!!.copy(isLoading = false, isRefreshing = false))
+                _event.onNext(ProfileEvent.Error(NetworkError.UNKNOWN))
+
+            })
+
+        compositeDisposable.add(disposable)
     }
 
     fun logout() {
         authRepository.logout()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        compositeDisposable.clear()
     }
 }

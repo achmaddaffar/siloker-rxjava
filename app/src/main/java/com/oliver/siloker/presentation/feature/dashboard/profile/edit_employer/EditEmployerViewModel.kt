@@ -1,61 +1,66 @@
 package com.oliver.siloker.presentation.feature.dashboard.profile.edit_employer
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import com.oliver.siloker.domain.error.NetworkError
 import com.oliver.siloker.domain.model.request.UpdateEmployerRequest
 import com.oliver.siloker.domain.repository.UserRepository
 import com.oliver.siloker.domain.util.onError
 import com.oliver.siloker.domain.util.onSuccess
+import com.oliver.siloker.presentation.util.updateState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import io.reactivex.rxjava3.disposables.CompositeDisposable
+import io.reactivex.rxjava3.schedulers.Schedulers
+import io.reactivex.rxjava3.subjects.BehaviorSubject
+import io.reactivex.rxjava3.subjects.PublishSubject
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltViewModel
 class EditEmployerViewModel @Inject constructor(
     private val userRepository: UserRepository
-): ViewModel() {
+) : ViewModel() {
 
-    private val _state = MutableStateFlow(EditEmployerState())
+    private val _state = BehaviorSubject.createDefault(EditEmployerState())
     val state = _state
-        .onStart { getProfile() }
-        .stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(30000L),
-            EditEmployerState()
-        )
+        .doOnSubscribe {
+            if (_state.value == EditEmployerState()) {
+                getProfile()
+            }
+        }
+        .share()
+        .replay(1)
+        .refCount(15000, TimeUnit.MILLISECONDS)
 
-    private val _event = MutableSharedFlow<EditEmployerEvent>()
-    val event = _event.asSharedFlow()
+    private val _event = PublishSubject.create<EditEmployerEvent>()
+    val event = _event.hide()
+
+    private val compositeDisposable = CompositeDisposable()
 
     fun setCompanyName(value: String) {
-        _state.update { it.copy(companyName = value) }
+        _state.updateState { it.copy(companyName = value) }
     }
 
     fun setCompanyWebsite(value: String) {
-        _state.update { it.copy(companyWebsite = value) }
+        _state.updateState { it.copy(companyWebsite = value) }
     }
 
     fun setPosition(value: String) {
-        _state.update { it.copy(position = value) }
+        _state.updateState { it.copy(position = value) }
     }
 
     private fun getProfile() {
-        userRepository
+        _state.updateState { it.copy(isLoading = true) }
+
+        val disposable = userRepository
             .getProfile()
-            .onStart { _state.update { it.copy(isLoading = true) } }
-            .onEach { result ->
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({ result ->
+                _state.updateState { it.copy(isLoading = false) }
                 result
                     .onSuccess { response ->
-                        _state.update {
+                        _state.updateState {
                             it.copy(
                                 companyName = response.employer?.companyName ?: "",
                                 companyWebsite = response.employer?.companyWebsite ?: "",
@@ -63,28 +68,43 @@ class EditEmployerViewModel @Inject constructor(
                             )
                         }
                     }
-                    .onError { _event.emit(EditEmployerEvent.Error(it)) }
-            }
-            .onCompletion { _state.update { it.copy(isLoading = false) } }
-            .launchIn(viewModelScope)
+                    .onError { _event.onNext(EditEmployerEvent.Error(it)) }
+            }, {
+                _state.updateState { it.copy(isLoading = false) }
+                _event.onNext(EditEmployerEvent.Error(NetworkError.UNKNOWN))
+            })
+
+        compositeDisposable.add(disposable)
     }
 
     fun registerEmployer() {
         val request = UpdateEmployerRequest(
-            companyName = _state.value.companyName.trim(),
-            position = _state.value.position.trim(),
-            companyWebsite = _state.value.companyWebsite.trim()
+            companyName = _state.value?.companyName?.trim().toString(),
+            position = _state.value?.position?.trim().toString(),
+            companyWebsite = _state.value?.companyWebsite?.trim().toString()
         )
 
-        userRepository
+        _state.updateState { it.copy(isLoading = true) }
+
+        val disposable = userRepository
             .updateEmployer(request)
-            .onStart { _state.update { it.copy(isLoading = true) } }
-            .onEach { result ->
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({ result ->
+                _state.updateState { it.copy(isLoading = false) }
                 result
-                    .onSuccess { _event.emit(EditEmployerEvent.Success) }
-                    .onError { _event.emit(EditEmployerEvent.Error(it)) }
-            }
-            .onCompletion { _state.update { it.copy(isLoading = false) } }
-            .launchIn(viewModelScope)
+                    .onSuccess { _event.onNext(EditEmployerEvent.Success) }
+                    .onError { _event.onNext(EditEmployerEvent.Error(it)) }
+            }, {
+                _state.updateState { it.copy(isLoading = false) }
+                _event.onNext(EditEmployerEvent.Error(NetworkError.UNKNOWN))
+            })
+
+        compositeDisposable.add(disposable)
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        compositeDisposable.dispose()
     }
 }
