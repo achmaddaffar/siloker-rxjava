@@ -21,12 +21,12 @@ import retrofit2.http.Url
 interface JobService {
 
     @GET("job")
-    suspend fun getJobs(
+    fun getJobs(
         @Query("query") query: String,
         @Query("employer_id") employerId: Long?,
         @Query("page") page: Int,
         @Query("size") size: Int
-    ): Response<BaseResponse<JobAdResponseDto>>
+    ): Single<Response<BaseResponse<JobAdResponseDto>>>
 
     @GET("job/{job_id}")
     fun getJobDetail(
@@ -49,29 +49,29 @@ interface JobService {
     ): Single<Response<BaseResponse<Boolean>>>
 
     @GET("job/applicants")
-    suspend fun getApplicants(
+    fun getApplicants(
         @Query("job_id") jobId: Long?,
         @Query("page") page: Int,
         @Query("size") size: Int
-    ): Response<BaseResponse<GetApplicantsResponseDto>>
+    ): Single<Response<BaseResponse<GetApplicantsResponseDto>>>
 
     @GET("job/applicants/{applicant_id}")
-    suspend fun getApplicant(
+    fun getApplicant(
         @Path("applicant_id") applicantId: Long
-    ): Response<BaseResponse<GetApplicantsResponseItemDto>>
+    ): Single<Response<BaseResponse<GetApplicantsResponseItemDto>>>
 
     @GET
-    suspend fun downloadCv(
+    fun downloadCv(
         @Url cvUrl: String
-    ): Response<ResponseBody>
+    ): Single<Response<ResponseBody>>
 
     @POST("job/applicants/{applicant_id}/accept")
-    suspend fun acceptApplicant(
+    fun acceptApplicant(
         @Path("applicant_id") applicantId: Long
-    ): Response<BaseResponse<GetApplicantsResponseItemDto>>
+    ): Single<Response<BaseResponse<GetApplicantsResponseItemDto>>>
 
     @POST("job/applicants/{applicant_id}/reject")
-    suspend fun rejectApplicant(
+    fun rejectApplicant(
         @Path("applicant_id") applicantId: Long
-    ): Response<BaseResponse<GetApplicantsResponseItemDto>>
+    ): Single<Response<BaseResponse<GetApplicantsResponseItemDto>>>
 }

@@ -2,92 +2,132 @@ package com.oliver.siloker.presentation.feature.job.applicant_detail
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import com.oliver.siloker.domain.error.NetworkError
 import com.oliver.siloker.domain.repository.JobRepository
 import com.oliver.siloker.domain.util.onError
 import com.oliver.siloker.domain.util.onSuccess
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import io.reactivex.rxjava3.disposables.CompositeDisposable
+import io.reactivex.rxjava3.schedulers.Schedulers
+import io.reactivex.rxjava3.subjects.BehaviorSubject
+import io.reactivex.rxjava3.subjects.PublishSubject
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltViewModel
 class JobApplicantDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val jobRepository: JobRepository
-): ViewModel() {
+) : ViewModel() {
 
     private val applicantId: Long = checkNotNull(savedStateHandle["applicantId"])
 
-    private val _state = MutableStateFlow(JobApplicantDetailState())
+    private val _state = BehaviorSubject.createDefault(JobApplicantDetailState())
     val state = _state
-        .onStart { getApplicant() }
-        .stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(15000L),
-            JobApplicantDetailState()
-        )
+        .doOnSubscribe {
+            if (_state.value == JobApplicantDetailState()) {
+                getApplicant()
+            }
+        }
+        .share()
+        .replay(1)
+        .refCount(15000L, TimeUnit.MILLISECONDS)
 
-    private val _event = MutableSharedFlow<JobApplicantDetailEvent>()
-    val event = _event.asSharedFlow()
+    private val _event = PublishSubject.create<JobApplicantDetailEvent>()
+    val event = _event.hide()
+
+    private val compositeDisposable = CompositeDisposable()
 
     fun getApplicant() {
-        jobRepository
+        _state.onNext(_state.value!!.copy(isLoading = true))
+
+        val disposable = jobRepository
             .getApplicant(applicantId)
-            .onStart { _state.update { it.copy(isLoading = true) } }
-            .onEach { result ->
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({ result ->
+                _state.onNext(_state.value!!.copy(isLoading = false))
                 result
-                    .onSuccess { response -> _state.update { it.copy(applicant = response) } }
-                    .onError { _event.emit(JobApplicantDetailEvent.Error(it)) }
-            }
-            .onCompletion { _state.update { it.copy(isLoading = false) } }
-            .launchIn(viewModelScope)
+                    .onSuccess {
+                        _state.onNext(
+                            _state.value!!.copy(
+                                isLoading = false,
+                                applicant = it
+                            )
+                        )
+                    }
+                    .onError { _event.onNext(JobApplicantDetailEvent.Error(it)) }
+            }, {
+                _state.onNext(_state.value!!.copy(isLoading = false))
+                _event.onNext(JobApplicantDetailEvent.Error(NetworkError.UNKNOWN))
+            })
+
+        compositeDisposable.add(disposable)
     }
 
     fun downloadCv(cvUrl: String) {
-        jobRepository
+        _state.onNext(_state.value!!.copy(isLoading = true))
+
+        val disposable = jobRepository
             .downloadCv(cvUrl)
-            .onStart { _state.update { it.copy(isLoading = true) } }
-            .onEach { result ->
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({ result ->
+                _state.onNext(_state.value!!.copy(isLoading = false))
                 result
-                    .onSuccess { _event.emit(JobApplicantDetailEvent.DownloadSuccess) }
-                    .onError { _event.emit(JobApplicantDetailEvent.Error(it)) }
-            }
-            .onCompletion { _state.update { it.copy(isLoading = false) } }
-            .launchIn(viewModelScope)
+                    .onSuccess { _event.onNext(JobApplicantDetailEvent.DownloadSuccess) }
+                    .onError { _event.onNext(JobApplicantDetailEvent.Error(it)) }
+            }, {
+                _state.onNext(_state.value!!.copy(isLoading = false))
+                _event.onNext(JobApplicantDetailEvent.Error(NetworkError.UNKNOWN))
+            })
+
+        compositeDisposable.add(disposable)
     }
 
     fun acceptApplicant() {
-        jobRepository
+        _state.onNext(_state.value!!.copy(isLoading = true))
+
+        val disposable = jobRepository
             .acceptApplicant(applicantId)
-            .onStart { _state.update { it.copy(isLoading = true) } }
-            .onEach { result ->
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({ result ->
+                _state.onNext(_state.value!!.copy(isLoading = false))
                 result
-                    .onSuccess { response -> _state.update { it.copy(applicant = response) } }
-                    .onError { _event.emit(JobApplicantDetailEvent.Error(it)) }
-            }
-            .onCompletion { _state.update { it.copy(isLoading = false) } }
-            .launchIn(viewModelScope)
+                    .onSuccess { response -> _state.onNext(_state.value!!.copy(applicant = response)) }
+                    .onError { _event.onNext(JobApplicantDetailEvent.Error(it)) }
+            }, {
+                _state.onNext(_state.value!!.copy(isLoading = false))
+                _event.onNext(JobApplicantDetailEvent.Error(NetworkError.UNKNOWN))
+            })
+
+        compositeDisposable.add(disposable)
     }
 
     fun rejectApplicant() {
-        jobRepository
+        _state.onNext(_state.value!!.copy(isLoading = true))
+
+        val disposable = jobRepository
             .rejectApplicant(applicantId)
-            .onStart { _state.update { it.copy(isLoading = true) } }
-            .onEach { result ->
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({ result ->
+                _state.onNext(_state.value!!.copy(isLoading = false))
                 result
-                    .onSuccess { response -> _state.update { it.copy(applicant = response) } }
-                    .onError { _event.emit(JobApplicantDetailEvent.Error(it)) }
-            }
-            .onCompletion { _state.update { it.copy(isLoading = false) } }
-            .launchIn(viewModelScope)
+                    .onSuccess { response -> _state.onNext(_state.value!!.copy(applicant = response)) }
+                    .onError { _event.onNext(JobApplicantDetailEvent.Error(it)) }
+            }, {
+                _state.onNext(_state.value!!.copy(isLoading = false))
+                _event.onNext(JobApplicantDetailEvent.Error(NetworkError.UNKNOWN))
+            })
+
+        compositeDisposable.add(disposable)
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        compositeDisposable.clear()
     }
 }

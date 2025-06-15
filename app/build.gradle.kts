@@ -126,4 +126,7 @@ dependencies {
 
     // Coroutines - Rx
     implementation(libs.kotlinx.coroutines.rx3)
+
+    // Compose - Rx
+    implementation(libs.androidx.runtime.rxjava3)
 }

@@ -12,6 +12,7 @@ import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.schedulers.Schedulers
 import io.reactivex.rxjava3.subjects.BehaviorSubject
 import io.reactivex.rxjava3.subjects.PublishSubject
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltViewModel
@@ -20,7 +21,10 @@ class PostJobViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _state = BehaviorSubject.createDefault(PostJobState())
-    val state = _state.hide()
+    val state = _state
+        .share()
+        .replay(1)
+        .refCount(15000L, TimeUnit.MILLISECONDS)
 
     private val _event = PublishSubject.create<PostJobEvent>()
     val event = _event.hide()

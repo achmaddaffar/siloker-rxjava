@@ -31,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rxjava3.subscribeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,7 +48,6 @@ import coil.compose.SubcomposeAsyncImage
 import com.oliver.siloker.presentation.component.LoadingDialog
 import com.oliver.siloker.presentation.ui.theme.AppTypography
 import com.oliver.siloker.presentation.util.ErrorMessageUtil.parseNetworkError
-import com.oliver.siloker.presentation.util.rememberRxState
 import com.oliver.siloker.rx.R
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import kotlinx.coroutines.launch
@@ -70,8 +70,8 @@ fun PostJobScreen(
         }
     }
 
-    val state by rememberRxState(viewModel.state, PostJobState())
-    val isPostEnabled by rememberRxState(viewModel.isPostEnabled, false)
+    val state by viewModel.state.subscribeAsState(PostJobState())
+    val isPostEnabled by viewModel.isPostEnabled.subscribeAsState(false)
 
     DisposableEffect(Unit) {
         val disposable = viewModel.event

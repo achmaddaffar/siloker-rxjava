@@ -14,6 +14,7 @@ import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.schedulers.Schedulers
 import io.reactivex.rxjava3.subjects.BehaviorSubject
 import io.reactivex.rxjava3.subjects.PublishSubject
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltViewModel
@@ -26,17 +27,21 @@ class JobDetailViewModel @Inject constructor(
     private val disposables = CompositeDisposable()
 
     private val _state = BehaviorSubject.createDefault(JobDetailState())
-    val state: Observable<JobDetailState> = _state.hide()
+    val state: Observable<JobDetailState> = _state
+        .doOnSubscribe {
+            if (_state.value == JobDetailState()) {
+                getJobDetail()
+            }
+        }
+        .share()
+        .replay(1)
+        .refCount(15000L, TimeUnit.MILLISECONDS)
 
     private val _event = PublishSubject.create<JobDetailEvent>()
-    val event: Observable<JobDetailEvent> = _event.hide()
+    val event = _event.hide()
 
     val isApplyEnabled: Observable<Boolean> = _state.map {
         it.jobDetail.isApplicable && !it.isLoading && it.cvUri != Uri.EMPTY
-    }
-
-    init {
-        getJobDetail()
     }
 
     fun setCvUri(value: Uri) {

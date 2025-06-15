@@ -14,7 +14,8 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -27,6 +28,8 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import com.oliver.siloker.presentation.component.JobApplicationCard
 import com.oliver.siloker.presentation.ui.theme.AppTypography
 import com.oliver.siloker.rx.R
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import kotlinx.coroutines.launch
 
 @Composable
 fun JobApplicationListScreen(
@@ -36,16 +39,23 @@ fun JobApplicationListScreen(
 ) {
     val context = LocalContext.current
     val viewModel = hiltViewModel<JobApplicationListViewModel>()
+    val scope = rememberCoroutineScope()
 
     val applicantItems = viewModel.applicants.collectAsLazyPagingItems()
 
-    LaunchedEffect(Unit) {
-        viewModel.pagingError.collect { error ->
-            snackbarHostState.showSnackbar(
-                message = error.message.toString(),
-                duration = SnackbarDuration.Short
-            )
-        }
+    DisposableEffect(Unit) {
+        val disposable = viewModel.pagingError
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe {
+                scope.launch {
+                    snackbarHostState.showSnackbar(
+                        message = it.message.toString(),
+                        duration = SnackbarDuration.Short
+                    )
+                }
+            }
+
+        onDispose { disposable.dispose() }
     }
 
     Column(

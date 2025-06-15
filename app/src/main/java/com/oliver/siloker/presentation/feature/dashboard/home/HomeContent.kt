@@ -1,6 +1,5 @@
 package com.oliver.siloker.presentation.feature.dashboard.home
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -23,24 +22,23 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rxjava3.subscribeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.oliver.siloker.presentation.component.JobAdCard
-import com.oliver.siloker.presentation.util.rememberRxState
 import com.oliver.siloker.rx.R
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,21 +48,22 @@ fun HomeContent(
     modifier: Modifier = Modifier
 ) {
     val viewModel = hiltViewModel<HomeViewModel>()
-    val context = LocalContext.current
     val focusManager = LocalFocusManager.current
+    val scope = rememberCoroutineScope()
 
-    val state by rememberRxState(viewModel.state, HomeState())
+    val state by viewModel.state.subscribeAsState(HomeState())
     val jobAdItems = viewModel.jobs.collectAsLazyPagingItems()
 
     DisposableEffect(Unit) {
         val disposable = viewModel.pagingError
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe {
-                Toast.makeText(
-                    context,
-                    it.message.toString(),
-                    Toast.LENGTH_SHORT
-                ).show()
+                scope.launch {
+                    snackbarHostState.showSnackbar(
+                        message = it.message.toString(),
+                        duration = SnackbarDuration.Short
+                    )
+                }
             }
 
         onDispose { disposable.dispose() }

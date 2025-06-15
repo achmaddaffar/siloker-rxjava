@@ -5,19 +5,18 @@ import android.net.Uri
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
+import androidx.paging.rxjava3.flowable
 import androidx.paging.rxjava3.observable
 import com.oliver.siloker.data.mapper.toApplicantsLatestDomain
 import com.oliver.siloker.data.mapper.toDomain
 import com.oliver.siloker.data.mapper.toJobDetailDomain
 import com.oliver.siloker.data.mapper.toJobLatestDomain
 import com.oliver.siloker.data.network.model.response.BaseResponse
-import com.oliver.siloker.data.network.model.response.JobDetailResponseDto
 import com.oliver.siloker.data.network.paging.GetApplicantsPagingSource
 import com.oliver.siloker.data.network.paging.GetJobPagingSource
 import com.oliver.siloker.data.network.service.JobService
 import com.oliver.siloker.data.pref.SiLokerPreference
 import com.oliver.siloker.data.util.DownloadUtil
-import com.oliver.siloker.data.util.getResponse
 import com.oliver.siloker.data.util.getResponseRaw
 import com.oliver.siloker.domain.error.NetworkError
 import com.oliver.siloker.domain.model.response.ApplicantsResponseItem
@@ -31,13 +30,10 @@ import com.oliver.siloker.domain.util.Result
 import com.oliver.siloker.domain.util.asEmptyDataResult
 import com.oliver.siloker.domain.util.map
 import com.oliver.siloker.domain.util.onSuccess
+import io.reactivex.rxjava3.core.Flowable
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.schedulers.Schedulers
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -52,7 +48,7 @@ class JobRepositoryImpl(
     override fun getJobs(
         query: String,
         isOwner: Boolean
-    ): Observable<PagingData<JobAdResponseItem>> = Pager(
+    ): Flowable<PagingData<JobAdResponseItem>> = Pager(
         PagingConfig(GetJobPagingSource.PAGE_SIZE)
     ) {
         GetJobPagingSource { page, size ->
@@ -63,66 +59,36 @@ class JobRepositoryImpl(
                 size = size
             )
         }
-    }.observable
+    }
+        .flowable
+        .subscribeOn(Schedulers.io())
 
-    override fun getLatestJobs(): Flow<Result<GetLatestJobResponse, NetworkError>> =
-        flow {
-            val response = getResponse {
-                jobService.getJobs(
-                    query = "",
-                    employerId = preference.getEmployerId(),
-                    page = 1,
-                    size = 5
-                )
-            }
-            emit(response.map { it.data.toJobLatestDomain() })
+    override fun getLatestJobs(): Single<Result<GetLatestJobResponse, NetworkError>> {
+        return Single.defer {
+            jobService.getJobs(
+                query = "",
+                employerId = preference.getEmployerId(),
+                page = 1,
+                size = 5
+            )
+                .map { response -> getResponseRaw(response).map { it.data.toJobLatestDomain() } }
+                .subscribeOn(Schedulers.io())
         }
-
-//    override fun getJobDetail(
-//        jobId: Long
-//    ): Flow<Result<JobDetailResponse, NetworkError>> =
-//        flow {
-//            val response = getResponse { jobService.getJobDetail(jobId) }
-//            emit(response.map { it.data.toJobDetailDomain() })
-//        }
+    }
 
     override fun getJobDetail(
         jobId: Long
     ): Observable<Result<JobDetailResponse, NetworkError>> {
         return jobService.getJobDetail(jobId)
             .map { response ->
-                getResponseRaw(response) // your own function
+                getResponseRaw(response)
             }
             .map { result ->
-                result.map { it.data.toJobDetailDomain() } // domain mapping
+                result.map { it.data.toJobDetailDomain() }
             }
-            .toObservable() // convert Single to Observable if needed by consumers
+            .toObservable()
             .subscribeOn(Schedulers.io())
     }
-//
-//    override fun postJob(
-//        uri: Uri,
-//        title: String,
-//        description: String
-//    ): Single<Result<BaseResponse<Boolean>, NetworkError>> = flow {
-//        val file = FileUtil.uriToFile(uri, application)
-//        val requestImageFile = file.asRequestBody("image/*".toMediaTypeOrNull())
-//        val imageMultipart = MultipartBody.Part.createFormData(
-//            "image",
-//            file.name,
-//            requestImageFile
-//        )
-//
-//        val response = getResponse {
-//            jobService.postJob(
-//                title = title.toRequestBody("text/plain".toMediaTypeOrNull()),
-//                description = description.toRequestBody("text/plain".toMediaTypeOrNull()),
-//                image = imageMultipart
-//            )
-//        }
-//
-//        emit(response)
-//    }.flowOn(Dispatchers.IO)
 
     override fun postJob(
         uri: Uri,
@@ -170,57 +136,62 @@ class JobRepositoryImpl(
 
     override fun getApplicants(
         jobId: Long?
-    ): Flow<PagingData<ApplicantsResponseItem>> = Pager(
+    ): Flowable<PagingData<ApplicantsResponseItem>> = Pager(
         PagingConfig(GetApplicantsPagingSource.PAGE_SIZE)
     ) {
         GetApplicantsPagingSource { page, size ->
             jobService.getApplicants(jobId, page, size)
         }
     }
-        .flow
-        .flowOn(Dispatchers.IO)
+        .flowable
+        .subscribeOn(Schedulers.io())
 
-    override fun getApplicant(applicantId: Long): Flow<Result<ApplicantsResponseItem, NetworkError>> =
-        flow {
-            val response = getResponse { jobService.getApplicant(applicantId) }
-            emit(response.map { it.data.toDomain() })
+    override fun getApplicant(applicantId: Long): Single<Result<ApplicantsResponseItem, NetworkError>> {
+        return Single.defer {
+            jobService.getApplicant(applicantId)
+                .map { response -> getResponseRaw(response).map { it.data.toDomain() } }
+                .subscribeOn(Schedulers.io())
         }
+    }
 
-    override fun getLatestApplication(): Flow<Result<GetLatestApplicationResponse, NetworkError>> =
-        flow {
-            val response = getResponse {
-                jobService.getApplicants(
-                    jobId = null,
-                    page = 1,
-                    size = 5
-                )
+    override fun getLatestApplication(): Single<Result<GetLatestApplicationResponse, NetworkError>> {
+        return Single.defer {
+            jobService.getApplicants(
+                jobId = null,
+                page = 1,
+                size = 5
+            )
+                .map { response -> getResponseRaw(response).map { it.data.toApplicantsLatestDomain() } }
+                .subscribeOn(Schedulers.io())
+        }
+    }
+
+    override fun downloadCv(cvUrl: String): Single<Result<Unit, NetworkError>> {
+        return jobService.downloadCv(cvUrl)
+            .map { response ->
+                val result = getResponseRaw(response)
+                result.onSuccess { body ->
+                    DownloadUtil.saveFileToPublicDownloads(
+                        context = application,
+                        fileName = cvUrl.split("/").last(),
+                        mimeType = "application/pdf",
+                        body = body
+                    )
+                }
+                result.asEmptyDataResult()
             }
-            emit(response.map { it.data.toApplicantsLatestDomain() })
-        }
+            .subscribeOn(Schedulers.io())
+    }
 
-    override fun downloadCv(cvUrl: String): Flow<Result<Unit, NetworkError>> =
-        flow {
-            val response = getResponse { jobService.downloadCv(cvUrl) }
-            response.onSuccess { body ->
-                DownloadUtil.saveFileToPublicDownloads(
-                    context = application,
-                    fileName = cvUrl.split("/").last(),
-                    mimeType = "application/pdf",
-                    body = body
-                )
-            }
-            emit(response.asEmptyDataResult())
-        }
+    override fun acceptApplicant(applicantId: Long): Single<Result<ApplicantsResponseItem, NetworkError>> {
+        return jobService.acceptApplicant(applicantId)
+            .map { response -> getResponseRaw(response).map { it.data.toDomain() } }
+            .subscribeOn(Schedulers.io())
+    }
 
-    override fun acceptApplicant(applicantId: Long): Flow<Result<ApplicantsResponseItem, NetworkError>> =
-        flow {
-            val response = getResponse { jobService.acceptApplicant(applicantId) }
-            emit(response.map { it.data.toDomain() })
-        }
-
-    override fun rejectApplicant(applicantId: Long): Flow<Result<ApplicantsResponseItem, NetworkError>> =
-        flow {
-            val response = getResponse { jobService.rejectApplicant(applicantId) }
-            emit(response.map { it.data.toDomain() })
-        }
+    override fun rejectApplicant(applicantId: Long): Single<Result<ApplicantsResponseItem, NetworkError>> {
+        return jobService.rejectApplicant(applicantId)
+            .map { response -> getResponseRaw(response).map { it.data.toDomain() } }
+            .subscribeOn(Schedulers.io())
+    }
 }

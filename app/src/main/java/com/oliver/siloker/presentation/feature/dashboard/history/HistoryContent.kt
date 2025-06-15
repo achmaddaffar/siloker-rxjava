@@ -26,8 +26,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rxjava3.subscribeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -35,13 +37,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.oliver.siloker.presentation.component.JobAdCard
 import com.oliver.siloker.presentation.component.JobApplicationCard
 import com.oliver.siloker.presentation.component.LoadingDialog
 import com.oliver.siloker.presentation.ui.theme.AppTypography
 import com.oliver.siloker.presentation.util.ErrorMessageUtil.parseNetworkError
 import com.oliver.siloker.rx.R
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,22 +58,29 @@ fun HistoryContent(
 ) {
     val viewModel = hiltViewModel<HistoryViewModel>()
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val state by viewModel.state.subscribeAsState(HistoryState())
 
-    LaunchedEffect(Unit) {
-        viewModel.event.collect { event ->
-            when (event) {
-                is HistoryEvent.Error -> {
-                    snackbarHostState.showSnackbar(
-                        message = event.error.parseNetworkError(context),
-                        duration = SnackbarDuration.Short
-                    )
+    DisposableEffect(Unit) {
+        val disposable = viewModel.event
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe { event ->
+                when (event) {
+                    is HistoryEvent.Error -> {
+                        scope.launch {
+                            snackbarHostState.showSnackbar(
+                                message = event.error.parseNetworkError(context),
+                                duration = SnackbarDuration.Short
+                            )
+                        }
+                    }
+
+                    HistoryEvent.Success -> Unit
                 }
-
-                HistoryEvent.Success -> Unit
             }
-        }
+
+        onDispose { disposable.dispose() }
     }
 
     if (state.isLoading) LoadingDialog()
@@ -216,7 +226,7 @@ fun HistoryContent(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    item {  }
+                    item { }
                     items(state.latestJobs.size) {
                         val job = state.latestJobs[it]
                         JobAdCard(
@@ -231,7 +241,7 @@ fun HistoryContent(
                                 .height(IntrinsicSize.Max)
                         )
                     }
-                    item {  }
+                    item { }
                 }
             } else {
                 Box(

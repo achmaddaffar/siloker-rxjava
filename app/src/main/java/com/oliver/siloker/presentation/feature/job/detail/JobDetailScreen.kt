@@ -34,6 +34,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rxjava3.subscribeAsState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -53,7 +54,6 @@ import com.oliver.siloker.presentation.component.ResultDialog
 import com.oliver.siloker.presentation.component.dottedBorder
 import com.oliver.siloker.presentation.ui.theme.AppTypography
 import com.oliver.siloker.presentation.util.ErrorMessageUtil.parseNetworkError
-import com.oliver.siloker.presentation.util.rememberRxState
 import com.oliver.siloker.rx.R
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 
@@ -71,8 +71,8 @@ fun JobDetailScreen(
         it?.let { viewModel.setCvUri(it) }
     }
 
-    val state by rememberRxState(viewModel.state, JobDetailState())
-    val isApplyEnabled by rememberRxState(viewModel.isApplyEnabled, false)
+    val state by viewModel.state.subscribeAsState(JobDetailState())
+    val isApplyEnabled by viewModel.isApplyEnabled.subscribeAsState(false)
     var isUploadSectionVisible by rememberSaveable { mutableStateOf(false) }
     var isSuccessPopUpVisible by rememberSaveable { mutableStateOf(false) }
 

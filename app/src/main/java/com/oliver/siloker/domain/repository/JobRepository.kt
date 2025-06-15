@@ -10,6 +10,7 @@ import com.oliver.siloker.domain.model.response.GetLatestJobResponse
 import com.oliver.siloker.domain.model.response.JobAdResponseItem
 import com.oliver.siloker.domain.model.response.JobDetailResponse
 import com.oliver.siloker.domain.util.Result
+import io.reactivex.rxjava3.core.Flowable
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.core.Single
 import kotlinx.coroutines.flow.Flow
@@ -19,9 +20,9 @@ interface JobRepository {
     fun getJobs(
         query: String,
         isOwner: Boolean = false
-    ): Observable<PagingData<JobAdResponseItem>>
+    ): Flowable<PagingData<JobAdResponseItem>>
 
-    fun getLatestJobs(): Flow<Result<GetLatestJobResponse, NetworkError>>
+    fun getLatestJobs(): Single<Result<GetLatestJobResponse, NetworkError>>
 
     fun getJobDetail(
         jobId: Long
@@ -40,17 +41,17 @@ interface JobRepository {
 
     fun getApplicants(
         jobId: Long?
-    ): Flow<PagingData<ApplicantsResponseItem>>
+    ): Flowable<PagingData<ApplicantsResponseItem>>
 
     fun getApplicant(
         applicantId: Long
-    ): Flow<Result<ApplicantsResponseItem, NetworkError>>
+    ): Single<Result<ApplicantsResponseItem, NetworkError>>
 
-    fun getLatestApplication(): Flow<Result<GetLatestApplicationResponse, NetworkError>>
+    fun getLatestApplication(): Single<Result<GetLatestApplicationResponse, NetworkError>>
 
-    fun downloadCv(cvUrl: String): Flow<Result<Unit, NetworkError>>
+    fun downloadCv(cvUrl: String): Single<Result<Unit, NetworkError>>
 
-    fun acceptApplicant(applicantId: Long): Flow<Result<ApplicantsResponseItem, NetworkError>>
+    fun acceptApplicant(applicantId: Long): Single<Result<ApplicantsResponseItem, NetworkError>>
 
-    fun rejectApplicant(applicantId: Long): Flow<Result<ApplicantsResponseItem, NetworkError>>
+    fun rejectApplicant(applicantId: Long): Single<Result<ApplicantsResponseItem, NetworkError>>
 }

@@ -7,11 +7,16 @@ import com.oliver.siloker.data.network.model.response.BaseResponse
 import com.oliver.siloker.data.network.model.response.JobAdResponseDto
 import com.oliver.siloker.data.util.getErrorResponse
 import com.oliver.siloker.domain.model.response.JobAdResponseItem
+import io.reactivex.rxjava3.core.Single
+import io.reactivex.rxjava3.schedulers.Schedulers
+import kotlinx.coroutines.rx3.await
+import kotlinx.coroutines.rx3.rxSingle
 import retrofit2.Response
 
 class GetJobPagingSource(
-    private val onGetResponse: suspend (page: Int, size: Int) -> Response<BaseResponse<JobAdResponseDto>>
+    private val getJobs: (page: Int, size: Int) -> Single<Response<BaseResponse<JobAdResponseDto>>>
 ) : PagingSource<Int, JobAdResponseItem>() {
+
     override fun getRefreshKey(state: PagingState<Int, JobAdResponseItem>): Int? =
         state.anchorPosition?.let {
             state.closestPageToPosition(it)?.prevKey?.plus(PAGE_SIZE)
@@ -19,22 +24,23 @@ class GetJobPagingSource(
         }
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, JobAdResponseItem> {
-        try {
-            val pageNumber = params.key ?: 1
-
-            val response = onGetResponse(pageNumber, PAGE_SIZE)
-            if (response.isSuccessful) {
-                return LoadResult.Page(
-                    data = response.body()?.data?.toJobAdDomain() ?: emptyList(),
-                    prevKey = response.body()?.data?.prevPage,
-                    nextKey = response.body()?.data?.nextPage
-                )
-            }
-
-            return LoadResult.Error(Throwable(response.errorBody().getErrorResponse()?.message))
-        } catch (e: Exception) {
-            return LoadResult.Error(e)
-        }
+        return rxSingle {
+            getJobs(params.key ?: 1, PAGE_SIZE)
+                .subscribeOn(Schedulers.io())
+                .map { response ->
+                    if (response.isSuccessful) {
+                        LoadResult.Page(
+                            data = response.body()?.data?.toJobAdDomain() ?: emptyList(),
+                            prevKey = response.body()?.data?.prevPage,
+                            nextKey = response.body()?.data?.nextPage
+                        )
+                    } else {
+                        LoadResult.Error(
+                            Throwable(response.errorBody()?.getErrorResponse()?.message)
+                        )
+                    }
+                }.blockingGet()
+        }.await()
     }
 
     companion object {

@@ -22,8 +22,10 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rxjava3.subscribeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,12 +40,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.SubcomposeAsyncImage
 import com.oliver.siloker.presentation.component.LoadingDialog
 import com.oliver.siloker.presentation.ui.theme.AppTypography
 import com.oliver.siloker.presentation.util.ErrorMessageUtil.parseNetworkError
 import com.oliver.siloker.rx.R
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import kotlinx.coroutines.launch
 
 @Composable
 fun JobApplicantDetailScreen(
@@ -52,30 +55,39 @@ fun JobApplicantDetailScreen(
 ) {
     val viewModel = hiltViewModel<JobApplicantDetailViewModel>()
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val state by viewModel.state.subscribeAsState(JobApplicantDetailState())
 
     val bullet = "\u2022"
     val paragraphStyle = ParagraphStyle(textIndent = TextIndent(restLine = 12.sp))
 
-    LaunchedEffect(Unit) {
-        viewModel.event.collect { event ->
-            when (event) {
-                is JobApplicantDetailEvent.Error -> {
-                    snackbarHostState.showSnackbar(
-                        message = event.error.parseNetworkError(context),
-                        duration = SnackbarDuration.Short
-                    )
-                }
+    DisposableEffect(Unit) {
+        val disposable = viewModel.event
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe { event ->
+                when (event) {
+                    is JobApplicantDetailEvent.Error -> {
+                        scope.launch {
+                            snackbarHostState.showSnackbar(
+                                message = event.error.parseNetworkError(context),
+                                duration = SnackbarDuration.Short
+                            )
+                        }
+                    }
 
-                JobApplicantDetailEvent.DownloadSuccess -> {
-                    snackbarHostState.showSnackbar(
-                        message = context.getString(R.string.cv_has_been_downloaded_successfully),
-                        duration = SnackbarDuration.Short
-                    )
+                    JobApplicantDetailEvent.DownloadSuccess -> {
+                        scope.launch {
+                            snackbarHostState.showSnackbar(
+                                message = context.getString(R.string.cv_has_been_downloaded_successfully),
+                                duration = SnackbarDuration.Short
+                            )
+                        }
+                    }
                 }
             }
-        }
+
+        onDispose { disposable.dispose() }
     }
 
     if (state.isLoading) LoadingDialog()
