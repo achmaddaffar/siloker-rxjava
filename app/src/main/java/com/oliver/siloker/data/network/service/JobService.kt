@@ -35,11 +35,11 @@ interface JobService {
 
     @Multipart
     @POST("job/create")
-    suspend fun postJob(
+    fun postJob(
         @Part("title") title: RequestBody,
         @Part("description") description: RequestBody,
         @Part image: MultipartBody.Part
-    ): Response<BaseResponse<Boolean>>
+    ): Single<Response<BaseResponse<Boolean>>>
 
     @Multipart
     @POST("job/apply")

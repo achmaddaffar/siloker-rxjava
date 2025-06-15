@@ -31,7 +31,7 @@ interface JobRepository {
         uri: Uri,
         title: String,
         description: String
-    ): Flow<Result<BaseResponse<Boolean>, NetworkError>>
+    ): Single<Result<BaseResponse<Boolean>, NetworkError>>
 
     fun applyJob(
         jobId: Long,

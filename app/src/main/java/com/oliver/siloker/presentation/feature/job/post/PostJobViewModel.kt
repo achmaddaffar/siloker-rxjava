@@ -2,23 +2,16 @@ package com.oliver.siloker.presentation.feature.job.post
 
 import android.net.Uri
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import com.oliver.siloker.domain.error.NetworkError
 import com.oliver.siloker.domain.repository.JobRepository
 import com.oliver.siloker.domain.util.onError
 import com.oliver.siloker.domain.util.onSuccess
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import io.reactivex.rxjava3.disposables.CompositeDisposable
+import io.reactivex.rxjava3.schedulers.Schedulers
+import io.reactivex.rxjava3.subjects.BehaviorSubject
+import io.reactivex.rxjava3.subjects.PublishSubject
 import javax.inject.Inject
 
 @HiltViewModel
@@ -26,50 +19,57 @@ class PostJobViewModel @Inject constructor(
     private val jobRepository: JobRepository
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(PostJobState())
-    val state = _state.asStateFlow()
+    private val _state = BehaviorSubject.createDefault(PostJobState())
+    val state = _state.hide()
 
-    private val _event = MutableSharedFlow<PostJobEvent>()
-    val event = _event.asSharedFlow()
+    private val _event = PublishSubject.create<PostJobEvent>()
+    val event = _event.hide()
 
     val isPostEnabled = _state
         .map {
             !it.isLoading && it.title.isNotEmpty() && it.description.isNotEmpty() && it.selectedImageUri != Uri.EMPTY
         }
-        .stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(15000L),
-            false
-        )
+
+    val compositeDisposable = CompositeDisposable()
 
     fun setImageUri(uri: Uri) {
-        _state.update { it.copy(selectedImageUri = uri) }
+        _state.onNext(_state.value!!.copy(selectedImageUri = uri))
     }
 
     fun setTitle(title: String) {
-        _state.update { it.copy(title = title) }
+        _state.onNext(_state.value!!.copy(title = title))
     }
 
     fun setDescription(desc: String) {
-        _state.update { it.copy(description = desc) }
+        _state.onNext(_state.value!!.copy(description = desc))
     }
 
     fun postJob() {
-        _state.update { it.copy(isLoading = true) }
-        viewModelScope.launch {
-            jobRepository
-                .postJob(
-                    uri = _state.value.selectedImageUri,
-                    title = _state.value.title,
-                    description = _state.value.description
-                )
-                .onEach { result ->
-                    result
-                        .onSuccess { _event.emit(PostJobEvent.Success) }
-                        .onError { _event.emit(PostJobEvent.Error(it)) }
-                }
-                .onCompletion { _state.update { it.copy(isLoading = false) } }
-                .collect()
-        }
+        _state.onNext(_state.value!!.copy(isLoading = true))
+
+        val disposable = jobRepository
+            .postJob(
+                uri = _state.value?.selectedImageUri ?: Uri.EMPTY,
+                title = _state.value?.title ?: "",
+                description = _state.value?.description ?: ""
+            )
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({ result ->
+                _state.onNext(_state.value!!.copy(isLoading = false))
+                result
+                    .onSuccess { _event.onNext(PostJobEvent.Success) }
+                    .onError { _event.onNext(PostJobEvent.Error(it)) }
+            }, {
+                _state.onNext(_state.value!!.copy(isLoading = false))
+                _event.onNext(PostJobEvent.Error(NetworkError.UNKNOWN))
+            })
+
+        compositeDisposable.add(disposable)
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        compositeDisposable.clear()
     }
 }

@@ -88,7 +88,7 @@ class JobDetailViewModel @Inject constructor(
     }
 
     override fun onCleared() {
-        disposables.clear()
         super.onCleared()
+        disposables.clear()
     }
 }

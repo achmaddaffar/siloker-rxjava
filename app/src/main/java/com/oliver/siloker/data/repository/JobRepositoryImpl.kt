@@ -99,58 +99,59 @@ class JobRepositoryImpl(
             .toObservable() // convert Single to Observable if needed by consumers
             .subscribeOn(Schedulers.io())
     }
+//
+//    override fun postJob(
+//        uri: Uri,
+//        title: String,
+//        description: String
+//    ): Single<Result<BaseResponse<Boolean>, NetworkError>> = flow {
+//        val file = FileUtil.uriToFile(uri, application)
+//        val requestImageFile = file.asRequestBody("image/*".toMediaTypeOrNull())
+//        val imageMultipart = MultipartBody.Part.createFormData(
+//            "image",
+//            file.name,
+//            requestImageFile
+//        )
+//
+//        val response = getResponse {
+//            jobService.postJob(
+//                title = title.toRequestBody("text/plain".toMediaTypeOrNull()),
+//                description = description.toRequestBody("text/plain".toMediaTypeOrNull()),
+//                image = imageMultipart
+//            )
+//        }
+//
+//        emit(response)
+//    }.flowOn(Dispatchers.IO)
 
     override fun postJob(
         uri: Uri,
         title: String,
         description: String
-    ): Flow<Result<BaseResponse<Boolean>, NetworkError>> = flow {
-        val file = FileUtil.uriToFile(uri, application)
-        val requestImageFile = file.asRequestBody("image/*".toMediaTypeOrNull())
-        val imageMultipart = MultipartBody.Part.createFormData(
-            "image",
-            file.name,
-            requestImageFile
-        )
-
-        val response = getResponse {
-            jobService.postJob(
-                title = title.toRequestBody("text/plain".toMediaTypeOrNull()),
-                description = description.toRequestBody("text/plain".toMediaTypeOrNull()),
-                image = imageMultipart
+    ): Single<Result<BaseResponse<Boolean>, NetworkError>> {
+        return Single.defer {
+            val file = FileUtil.uriToFile(uri, application)
+            val requestImageFile = file.asRequestBody("image/*".toMediaTypeOrNull())
+            val imageMultipart = MultipartBody.Part.createFormData(
+                "image",
+                file.name,
+                requestImageFile
             )
+
+            val titleBody = title.toRequestBody("text/plain".toMediaTypeOrNull())
+            val descBody = description.toRequestBody("text/plain".toMediaTypeOrNull())
+
+            jobService.postJob(titleBody, descBody, imageMultipart)
+                .map { response -> getResponseRaw(response) }
+                .subscribeOn(Schedulers.io())
         }
-
-        emit(response)
-    }.flowOn(Dispatchers.IO)
-
-//    override fun applyJob(
-//        jobId: Long,
-//        cv: Uri
-//    ): Flow<Result<BaseResponse<Boolean>, NetworkError>> =
-//        flow {
-//            val file = FileUtil.uriToFile(cv, application)
-//            val requestCvFile = file.asRequestBody("application/pdf".toMediaTypeOrNull())
-//            val cvMultipart = MultipartBody.Part.createFormData(
-//                "cv",
-//                file.name,
-//                requestCvFile
-//            )
-//
-//            val response = getResponse {
-//                jobService.applyJob(
-//                    jobId = jobId.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
-//                    cv = cvMultipart
-//                )
-//            }
-//            emit(response)
-//        }.flowOn(Dispatchers.IO)
+    }
 
     override fun applyJob(
         jobId: Long,
         cv: Uri
     ): Single<Result<BaseResponse<Boolean>, NetworkError>> {
-        return Single.fromCallable {
+        return Single.defer {
             val file = FileUtil.uriToFile(cv, application)
             val requestCvFile = file.asRequestBody("application/pdf".toMediaTypeOrNull())
             val cvMultipart = MultipartBody.Part.createFormData(
@@ -158,14 +159,12 @@ class JobRepositoryImpl(
                 file.name,
                 requestCvFile
             )
-            jobId.toString().toRequestBody("text/plain".toMediaTypeOrNull()) to cvMultipart
-        }.flatMap { (jobIdBody, cvMultipart) ->
-            jobService.applyJob(
-                jobId = jobIdBody,
-                cv = cvMultipart
-            )
-        }.map { response -> getResponseRaw(response) }
-            .subscribeOn(Schedulers.io())
+            val jobIdBody = jobId.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+
+            jobService.applyJob(jobIdBody, cvMultipart)
+                .map { response -> getResponseRaw(response) }
+                .subscribeOn(Schedulers.io())
+        }
     }
 
 

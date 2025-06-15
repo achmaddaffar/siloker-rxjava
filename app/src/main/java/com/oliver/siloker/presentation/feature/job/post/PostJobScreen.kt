@@ -28,8 +28,9 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,12 +43,14 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.SubcomposeAsyncImage
 import com.oliver.siloker.presentation.component.LoadingDialog
 import com.oliver.siloker.presentation.ui.theme.AppTypography
 import com.oliver.siloker.presentation.util.ErrorMessageUtil.parseNetworkError
+import com.oliver.siloker.presentation.util.rememberRxState
 import com.oliver.siloker.rx.R
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import kotlinx.coroutines.launch
 
 @Composable
 fun PostJobScreen(
@@ -58,6 +61,7 @@ fun PostJobScreen(
     val viewModel = hiltViewModel<PostJobViewModel>()
     val focusManager = LocalFocusManager.current
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) {
@@ -66,22 +70,28 @@ fun PostJobScreen(
         }
     }
 
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    val isPostEnabled by viewModel.isPostEnabled.collectAsStateWithLifecycle()
+    val state by rememberRxState(viewModel.state, PostJobState())
+    val isPostEnabled by rememberRxState(viewModel.isPostEnabled, false)
 
-    LaunchedEffect(Unit) {
-        viewModel.event.collect { event ->
-            when (event) {
-                is PostJobEvent.Error -> {
-                    snackbarHostState.showSnackbar(
-                        message = event.error.parseNetworkError(context),
-                        duration = SnackbarDuration.Short
-                    )
+    DisposableEffect(Unit) {
+        val disposable = viewModel.event
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe { event ->
+                when (event) {
+                    is PostJobEvent.Error -> {
+                        scope.launch {
+                            snackbarHostState.showSnackbar(
+                                message = event.error.parseNetworkError(context),
+                                duration = SnackbarDuration.Short
+                            )
+                        }
+                    }
+
+                    PostJobEvent.Success -> onBackNavigate()
                 }
-
-                PostJobEvent.Success -> onBackNavigate()
             }
-        }
+
+        onDispose { disposable.dispose() }
     }
 
     if (state.isLoading) LoadingDialog()
