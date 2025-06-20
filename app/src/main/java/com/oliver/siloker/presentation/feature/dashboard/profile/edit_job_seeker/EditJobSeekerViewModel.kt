@@ -6,6 +6,7 @@ import com.oliver.siloker.domain.model.request.UpdateJobSeekerRequest
 import com.oliver.siloker.domain.repository.UserRepository
 import com.oliver.siloker.domain.util.onError
 import com.oliver.siloker.domain.util.onSuccess
+import com.oliver.siloker.presentation.util.updateState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.disposables.CompositeDisposable
@@ -37,20 +38,18 @@ class EditJobSeekerViewModel @Inject constructor(
     private val compositeDisposable = CompositeDisposable()
 
     fun setResumeUrl(value: String) {
-        _state.onNext(_state.value!!.copy(resumeUrl = value))
+        _state.updateState { it.copy(resumeUrl = value) }
     }
 
     fun setSkill(index: Int, value: String) {
-        val updatedSkills = _state.value?.skills?.toMutableList().also { it?.set(index, value) }
-        _state.onNext(
-            _state.value!!.copy(
-                skills = updatedSkills ?: emptyList()
-            )
-        )
+        _state.updateState {
+            val updatedSkills = it.skills.toMutableList().also { it[index] = value }
+            it.copy(skills = updatedSkills)
+        }
     }
 
     fun addSkill() {
-        _state.onNext(_state.value!!.copy(skills = (_state.value?.skills ?: emptyList()) + ""))
+        _state.updateState { (it.copy(skills = it.skills + "")) }
     }
 
     fun deleteSkill(index: Int) {

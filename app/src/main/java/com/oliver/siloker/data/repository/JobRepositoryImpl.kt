@@ -6,7 +6,6 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.rxjava3.flowable
-import androidx.paging.rxjava3.observable
 import com.oliver.siloker.data.mapper.toApplicantsLatestDomain
 import com.oliver.siloker.data.mapper.toDomain
 import com.oliver.siloker.data.mapper.toJobDetailDomain
@@ -31,7 +30,6 @@ import com.oliver.siloker.domain.util.asEmptyDataResult
 import com.oliver.siloker.domain.util.map
 import com.oliver.siloker.domain.util.onSuccess
 import io.reactivex.rxjava3.core.Flowable
-import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.schedulers.Schedulers
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -78,16 +76,17 @@ class JobRepositoryImpl(
 
     override fun getJobDetail(
         jobId: Long
-    ): Observable<Result<JobDetailResponse, NetworkError>> {
-        return jobService.getJobDetail(jobId)
-            .map { response ->
-                getResponseRaw(response)
-            }
-            .map { result ->
-                result.map { it.data.toJobDetailDomain() }
-            }
-            .toObservable()
-            .subscribeOn(Schedulers.io())
+    ): Single<Result<JobDetailResponse, NetworkError>> {
+        return Single.defer {
+            jobService.getJobDetail(jobId)
+                .map { response ->
+                    getResponseRaw(response)
+                }
+                .map { result ->
+                    result.map { it.data.toJobDetailDomain() }
+                }
+                .subscribeOn(Schedulers.io())
+        }
     }
 
     override fun postJob(

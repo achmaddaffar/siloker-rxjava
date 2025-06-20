@@ -26,7 +26,7 @@ interface JobRepository {
 
     fun getJobDetail(
         jobId: Long
-    ): Observable<Result<JobDetailResponse, NetworkError>>
+    ): Single<Result<JobDetailResponse, NetworkError>>
 
     fun postJob(
         uri: Uri,
